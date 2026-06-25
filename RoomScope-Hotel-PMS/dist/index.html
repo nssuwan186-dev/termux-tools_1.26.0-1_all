@@ -1,0 +1,1958 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoomScope PMS</title>
+  <meta name="description" content="ระบบบริหารจัดการโรงแรม RoomScope — ครบวงจร ทันสมัย เชื่อมต่อ LINE">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --border: #21262d;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --accent: #58a6ff;
+  --accent-grad: linear-gradient(135deg, #8957e5 0%, #58a6ff 100%);
+  --success: #3fb950;
+  --warning: #d29922;
+  --danger: #f85149;
+  --card-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; display: flex;
+}
+#sidebar {
+  width: 220px; min-height: 100vh;
+  background: var(--surface); border-right: 1px solid var(--border);
+  padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: 0.5rem;
+}
+#sidebar .logo {
+  font-size: 1.2rem; font-weight: 700;
+  background: var(--accent-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 1.5rem; padding: 0 0.5rem;
+}
+.nav-item {
+  padding: 0.7rem 1rem; border-radius: 8px; cursor: pointer;
+  color: var(--text-muted); font-size: 0.9rem;
+  transition: all 0.2s; display: flex; align-items: center; gap: 0.6rem;
+}
+.nav-item:hover, .nav-item.active { background: rgba(88,166,255,0.12); color: var(--text); }
+.sub-tab { padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; color: var(--text-muted); }
+.sub-tab:hover, .sub-tab.active { background: rgba(88,166,255,0.15); color: var(--text); }
+#main { flex: 1; padding: 2rem; overflow-y: auto; }
+.page-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; }
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--card-shadow);
+}
+.card-title { font-size: 1rem; font-weight: 600; color: var(--text-muted); margin-bottom: 1rem; }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.kpi-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.2rem; text-align: center;
+}
+.kpi-value { font-size: 2rem; font-weight: 700; }
+.kpi-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.3rem; }
+.kpi-card.available .kpi-value { color: var(--success); }
+.kpi-card.occupied .kpi-value { color: var(--accent); }
+.kpi-card.dirty .kpi-value { color: var(--warning); }
+.kpi-card.oor .kpi-value { color: var(--danger); }
+.btn {
+  padding: 0.65rem 1.2rem; border-radius: 8px; border: none;
+  font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  display: inline-flex; align-items: center; gap: 0.4rem; color: #fff;
+}
+.btn-primary { background: var(--accent-grad); box-shadow: 0 4px 12px rgba(88,166,255,0.3); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(88,166,255,0.4); }
+.btn-success { background: linear-gradient(135deg, #26a641, #3fb950); }
+.btn-danger { background: linear-gradient(135deg, #b91c1c, #f85149); }
+.btn-ghost { background: rgba(255,255,255,0.06); border: 1px solid var(--border); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th { text-align: left; padding: 0.75rem 1rem; color: var(--text-muted); font-weight: 500;
+  border-bottom: 1px solid var(--border); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+tr:hover td { background: rgba(255,255,255,0.02); }
+.badge {
+  padding: 0.25rem 0.65rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-block;
+}
+.badge-available { background: rgba(63,185,80,0.15); color: var(--success); }
+.badge-occupied { background: rgba(88,166,255,0.15); color: var(--accent); }
+.badge-dirty { background: rgba(210,153,34,0.15); color: var(--warning); }
+.badge-oor { background: rgba(248,81,73,0.15); color: var(--danger); }
+.badge-confirmed { background: rgba(88,166,255,0.15); color: var(--accent); }
+.badge-checked_in { background: rgba(63,185,80,0.15); color: var(--success); }
+.badge-checked_out { background: rgba(139,148,158,0.15); color: var(--text-muted); }
+.badge-pending { background: rgba(210,153,34,0.15); color: var(--warning); }
+.form-group { margin-bottom: 1rem; }
+.form-label { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; display: block; }
+.form-input {
+  width: 100%; padding: 0.65rem 0.9rem; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.9rem;
+}
+.form-input:focus, .form-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(88,166,255,0.15); }
+.form-select {
+  width: 100%; padding: 0.65rem 0.9rem; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.9rem;
+}
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  z-index: 1000; align-items: center; justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 2rem; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;
+}
+.modal-header { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; justify-content: space-between; }
+.alert { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; }
+.alert-error { background: rgba(248,81,73,0.12); border: 1px solid rgba(248,81,73,0.3); color: #f85149; }
+.alert-success { background: rgba(63,185,80,0.12); border: 1px solid rgba(63,185,80,0.3); color: #3fb950; }
+#login-screen {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; align-items: center; justify-content: center; z-index: 9999;
+}
+.login-card { width: 380px; }
+.login-card h1 { font-size: 1.8rem; font-weight: 700; background: var(--accent-grad);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.4rem; text-align: center; }
+.login-card .subtitle { color: var(--text-muted); text-align: center; margin-bottom: 2rem; font-size: 0.9rem; }
+@media (max-width: 768px) {
+  #sidebar { display: none; }
+  #sidebar.open { display: flex; position: fixed; z-index: 999; width: 240px; height: 100vh; }
+}
+</style>
+
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="card login-card">
+    <div style="font-size:3rem;margin-bottom:.5rem">🏨</div>
+    <h1>RoomScope</h1>
+    <p class="subtitle">Hotel Property Management System</p>
+    <div id="login-error" class="alert alert-error" style="display:none"></div>
+    <div class="form-group">
+      <label class="form-label" for="login-username">ชื่อผู้ใช้</label>
+      <input id="login-username" class="form-input" type="text" placeholder="กรอกชื่อผู้ใช้"
+        onkeydown="if(event.key==='Enter') document.getElementById('login-password').focus()">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="login-password">รหัสผ่าน</label>
+      <input id="login-password" class="form-input" type="password" placeholder="กรอกรหัสผ่าน"
+        onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <button id="btn-login" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:.5rem" onclick="doLogin()">
+      เข้าสู่ระบบ
+    </button>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div id="sidebar" style="display:none">
+  <div class="logo">🏨 RoomScope</div>
+  <div class="nav-item active" data-page="dashboard" onclick="loadPage('dashboard')">📊 แดชบอร์ด</div>
+  <div class="nav-item" data-page="rooms" onclick="loadPage('rooms')">🏨 ห้องพัก</div>
+  <div class="nav-item" data-page="bookings" onclick="loadPage('bookings')">📅 การจอง</div>
+  <div class="nav-item" data-page="housekeeping" onclick="loadPage('housekeeping')">🧹 ทำความสะอาด</div>
+  <div class="nav-item" data-page="financial_docs" onclick="loadPage('financial_docs')">🧾 เอกสารการเงิน</div>
+  <div class="nav-item" data-page="legal_logs" onclick="loadPage('legal_logs')">📋 รายงานกฎหมาย</div>
+  <div class="nav-item admin-only" data-page="reports" onclick="loadPage('reports')" style="display:none">📈 รายงาน</div>
+  <div class="nav-item admin-only" data-page="settings" onclick="loadPage('settings')" style="display:none">⚙️ ตั้งค่าระบบ</div>
+  <div style="flex:1"></div>
+  <div class="user-info" id="user-name" style="padding:.75rem 1rem;font-size:.85rem;color:var(--text-muted);border-top:1px solid var(--border)"></div>
+  <div class="nav-item" onclick="doLogout()" style="color:var(--danger)">🚪 ออกจากระบบ</div>
+</div>
+
+<!-- MAIN -->
+<div id="main" style="display:none">
+  <div id="page-content"></div>
+</div>
+
+<!-- MODAL -->
+<div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center" onclick="if(event.target===this)closeModal()">
+  <div class="card" id="modal-body" style="max-width:500px;width:90%;max-height:90vh;overflow-y:auto"></div>
+</div>
+
+<script>
+// ===== STATE =====
+var STATE = { token: null, role: null, fullName: null, currentPage: 'dashboard' };
+
+// ===== INIT =====
+window.onload = function() {
+  var savedToken = localStorage.getItem('pms_token');
+  if (savedToken) {
+    STATE.token = savedToken;
+    STATE.role = localStorage.getItem('pms_role');
+    STATE.fullName = localStorage.getItem('pms_name');
+    hidePage('login-screen');
+    showApp();
+    loadPage('dashboard');
+  }
+};
+
+// ===== AUTH =====
+function doLogin() {
+  var u = document.getElementById('login-username').value.trim();
+  var p = document.getElementById('login-password').value;
+  var btn = document.getElementById('btn-login');
+  if (!u || !p) return showLoginError('กรุณากรอกชื่อผู้ใช้และรหัสผ่าน');
+  btn.disabled = true; btn.textContent = 'กำลังเข้าสู่ระบบ...';
+  google.script.run
+    .withSuccessHandler(function(res) {
+      STATE.token = res.token; STATE.role = res.role; STATE.fullName = res.fullName;
+      localStorage.setItem('pms_token', res.token);
+      localStorage.setItem('pms_role', res.role);
+      localStorage.setItem('pms_name', res.fullName);
+      hidePage('login-screen');
+      showApp();
+      loadPage('dashboard');
+      btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
+    })
+    .withFailureHandler(function(e) {
+      showLoginError(e.message); btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
+    })
+    .เข้าสู่ระบบ(u, p);
+}
+
+function doLogout() {
+  try { google.script.run.ออกจากระบบ(STATE.token); } catch(e) {}
+  STATE = { token: null, role: null, fullName: null, currentPage: 'dashboard' };
+  localStorage.clear();
+  document.getElementById('sidebar').style.display = 'none';
+  document.getElementById('main').style.display = 'none';
+  showPage('login-screen');
+}
+
+function showApp() {
+  document.getElementById('sidebar').style.display = 'flex';
+  document.getElementById('main').style.display = 'flex';
+  document.getElementById('user-name').textContent = STATE.fullName || '';
+  // Show admin-only menus
+  if (STATE.role === 'SuperAdmin' || STATE.role === 'Manager') {
+    document.querySelectorAll('.admin-only').forEach(function(el) { el.style.display = 'flex'; });
+  }
+}
+
+function showLoginError(msg) {
+  var el = document.getElementById('login-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+// ===== NAVIGATION =====
+function loadPage(page) {
+  STATE.currentPage = page;
+  document.querySelectorAll('.nav-item[data-page]').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.page === page);
+  });
+  var content = document.getElementById('page-content');
+  content.innerHTML = '<div class="loading-spinner">⏳ กำลังโหลด...</div>';
+  if (page === 'dashboard') renderDashboard();
+  else if (page === 'rooms') renderRooms();
+  else if (page === 'bookings') renderBookings();
+  else if (page === 'housekeeping') renderHousekeeping();
+  else if (page === 'financial_docs') renderFinancialDocs();
+  else if (page === 'legal_logs') renderLegalLogs();
+  else if (page === 'reports') renderReports();
+  else if (page === 'settings') renderSettings();
+}
+
+// ===== DASHBOARD =====
+function renderDashboard() {
+  google.script.run
+    .withSuccessHandler(function(data) {
+      document.getElementById('page-content').innerHTML =
+        '<h1 class="page-title">📊 แดชบอร์ด</h1>' +
+        '<div class="kpi-grid">' +
+          '<div class="kpi-card available"><div class="kpi-value">' + (data.roomStats.available||0) + '</div><div class="kpi-label">ห้องว่าง</div></div>' +
+          '<div class="kpi-card occupied"><div class="kpi-value">' + (data.roomStats.occupied||0) + '</div><div class="kpi-label">มีผู้เข้าพัก</div></div>' +
+          '<div class="kpi-card dirty"><div class="kpi-value">' + ((data.roomStats.dirty||0)+(data.roomStats.clean_inspected||0)) + '</div><div class="kpi-label">งานทำความสะอาด</div></div>' +
+          '<div class="kpi-card oor"><div class="kpi-value">' + (data.roomStats.out_of_order||0) + '</div><div class="kpi-label">ปิดซ่อม</div></div>' +
+        '</div>' +
+        '<div class="kpi-grid">' +
+          '<div class="kpi-card"><div class="kpi-value" style="color:var(--accent)">' + data.occupancyRate + '%</div><div class="kpi-label">Occupancy Rate</div></div>' +
+          '<div class="kpi-card"><div class="kpi-value" style="color:var(--success)">' + data.todayCheckIns + '</div><div class="kpi-label">เช็คอินวันนี้</div></div>' +
+          '<div class="kpi-card"><div class="kpi-value" style="color:var(--warning)">' + data.todayCheckOuts + '</div><div class="kpi-label">เช็คเอาท์วันนี้</div></div>' +
+          '<div class="kpi-card"><div class="kpi-value" style="color:var(--accent)">' + fmtMoney(data.todayRevenue||0) + '</div><div class="kpi-label">รายรับวันนี้ (฿)</div></div>' +
+        '</div>';
+    })
+    .withFailureHandler(handleError)
+    .ดึงข้อมูลDashboard(STATE.token);
+}
+
+// ===== ROOMS =====
+function renderRooms() {
+  google.script.run
+    .withSuccessHandler(function(rooms) {
+      var rows = rooms.map(function(r) {
+        var statusLabel = {available:'ว่าง',occupied:'มีผู้เข้าพัก',dirty:'รอทำความสะอาด',clean_inspected:'สะอาดพร้อมขาย',out_of_order:'ปิดซ่อม'}[r.status]||r.status;
+        var badgeClass = 'badge-' + (r.status==='clean_inspected'?'available':r.status==='out_of_order'?'oor':r.status);
+        return '<tr>' +
+          '<td><strong>' + r.roomNo + '</strong></td>' +
+          '<td>' + r.buildingName + '</td>' +
+          '<td>' + r.roomTypeName + '</td>' +
+          '<td>' + fmtMoney(r.priceDaily) + ' ฿</td>' +
+          '<td><span class="badge ' + badgeClass + '">' + statusLabel + '</span></td>' +
+          '<td>' +
+            (r.status !== 'occupied' && r.status !== 'out_of_order' ?
+              '<button class="btn btn-sm btn-primary" onclick="showBookingModal(\'' + r.roomId + '\',\'' + r.roomNo + '\')">จอง</button>' : '') +
+          '</td>' +
+        '</tr>';
+      }).join('');
+      document.getElementById('page-content').innerHTML =
+        '<h1 class="page-title">🏨 ห้องพักทั้งหมด</h1>' +
+        '<div class="card"><table><thead><tr><th>เลขห้อง</th><th>อาคาร</th><th>ประเภท</th><th>ราคา/คืน</th><th>สถานะ</th><th>ดำเนินการ</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+    })
+    .withFailureHandler(handleError)
+    .ดึงข้อมูลห้องพักทั้งหมด(STATE.token);
+}
+
+// ===== BOOKINGS =====
+function renderBookings() {
+  google.script.run
+    .withSuccessHandler(function(bookings) {
+      var statusLabel = {confirmed:'ยืนยันแล้ว',pending:'รอยืนยัน',checked_in:'เช็คอินแล้ว',checked_out:'เช็คเอาท์แล้ว',cancelled:'ยกเลิก'};
+      var rows = bookings.map(function(b) {
+        var sc = b.status==='checked_in'?'badge-occupied':b.status==='confirmed'?'badge-available':b.status==='cancelled'?'badge-oor':'badge-dirty';
+        var actions = '<div style="display:flex;flex-wrap:wrap;gap:0.3rem">';
+        if (b.status==='confirmed') actions += '<button class="btn btn-sm btn-primary" onclick="doCheckIn(\'' + b.bookingId + '\')">เช็คอิน</button>';
+        if (b.status==='checked_in') actions += '<button class="btn btn-sm btn-success" onclick="doCheckOut(\'' + b.bookingId + '\')">เช็คเอาท์</button>';
+        if (b.status==='confirmed'||b.status==='pending') actions += '<button class="btn btn-sm" style="background:var(--danger)" onclick="doCancelBooking(\'' + b.bookingId + '\')">ยกเลิก</button>';
+        actions += '</div>';
+        
+        var advActions = '<div style="display:flex;gap:0.3rem;margin-top:0.3rem">' +
+          '<button class="btn btn-sm btn-ghost" style="padding:0.25rem 0.5rem;font-size:0.75rem" onclick="showAddonsModal(\'' + b.bookingId + '\',\'' + b.roomNo + '\')">➕ แอดออน</button>' +
+          '<button class="btn btn-sm btn-ghost" style="padding:0.25rem 0.5rem;font-size:0.75rem" onclick="showIssueDocModal(\'' + b.bookingId + '\',' + b.totalAmount + ')">🧾 เอกสาร</button>' +
+          '<button class="btn btn-sm btn-ghost" style="padding:0.25rem 0.5rem;font-size:0.75rem" onclick="showLegalGuestModal(\'' + b.bookingId + '\',\'' + b.roomNo + '\',\'' + b.guestName.replace(/'/g, "\\'") + '\')">📋 ตม.</button>' +
+          '</div>';
+
+        return '<tr>' +
+          '<td><strong>' + b.bookingId + '</strong></td>' +
+          '<td>' + b.guestName + '</td>' +
+          '<td>' + b.roomNo + '</td>' +
+          '<td>' + b.checkInDate + '</td>' +
+          '<td>' + b.checkOutDate + '</td>' +
+          '<td>' + b.nights + ' คืน</td>' +
+          '<td>' + fmtMoney(b.totalAmount) + ' ฿</td>' +
+          '<td><span class="badge ' + sc + '">' + (statusLabel[b.status]||b.status) + '</span></td>' +
+          '<td>' + actions + advActions + '</td>' +
+          '</tr>';
+      }).join('');
+      document.getElementById('page-content').innerHTML =
+        '<h1 class="page-title">📅 การจองทั้งหมด</h1>' +
+        '<div style="margin-bottom:1rem"><button class="btn btn-primary" onclick="showNewBookingForm()">➕ สร้างการจองใหม่</button></div>' +
+        '<div class="card"><table><thead><tr>' +
+          '<th>Booking ID</th><th>ผู้เข้าพัก</th><th>ห้อง</th><th>เช็คอิน</th><th>เช็คเอาท์</th><th>คืน</th><th>ยอดรวม</th><th>สถานะ</th><th>ดำเนินการ</th>' +
+        '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+    })
+    .withFailureHandler(handleError)
+    .ดึงการจองทั้งหมด(STATE.token);
+}
+
+function doCheckIn(bookingId) {
+  if (!confirm('ยืนยันการเช็คอิน Booking: ' + bookingId + '?')) return;
+  google.script.run.withSuccessHandler(function() { loadPage('bookings'); }).withFailureHandler(handleError).เช็คอิน(STATE.token, bookingId);
+}
+function doCheckOut(bookingId) {
+  if (!confirm('ยืนยันการเช็คเอาท์ Booking: ' + bookingId + '?')) return;
+  google.script.run.withSuccessHandler(function() { loadPage('bookings'); }).withFailureHandler(handleError).เช็คเอาท์(STATE.token, bookingId);
+}
+function doCancelBooking(bookingId) {
+  var reason = prompt('ระบุเหตุผลการยกเลิก:');
+  if (reason === null) return;
+  google.script.run.withSuccessHandler(function() { loadPage('bookings'); }).withFailureHandler(handleError).ยกเลิกการจอง(STATE.token, bookingId, reason);
+}
+
+function showNewBookingForm() {
+  var modal = document.getElementById('modal');
+  var body = document.getElementById('modal-body');
+  var today = new Date().toISOString().slice(0,10);
+  var tomorrow = new Date(Date.now()+86400000).toISOString().slice(0,10);
+  body.innerHTML =
+    '<h2 style="margin-bottom:1.5rem">📝 สร้างการจองใหม่</h2>' +
+    '<div class="form-group"><label class="form-label">ชื่อผู้เข้าพัก</label><input id="bk-name" class="form-input" placeholder="ชื่อ-นามสกุล"></div>' +
+    '<div class="form-group" style="display:flex;gap:1rem">' +
+      '<div style="flex:1"><label class="form-label">เบอร์โทร</label><input id="bk-phone" class="form-input" placeholder="0812345678"></div>' +
+      '<div style="flex:1"><label class="form-label">อีเมล</label><input id="bk-email" class="form-input" placeholder="customer@email.com"></div>' +
+    '</div>' +
+    '<div class="form-group" style="display:flex;gap:1rem">' +
+      '<div style="flex:1"><label class="form-label">เลขห้อง</label><input id="bk-room" class="form-input" placeholder="เช่น 101"></div>' +
+      '<div style="flex:1"><label class="form-label">สัญชาติ</label><input id="bk-nationality" class="form-input" value="ไทย" placeholder="เช่น ไทย, British"></div>' +
+    '</div>' +
+    '<div class="form-group"><label class="form-label">เลขบัตรประชาชน/หนังสือเดินทาง</label><input id="bk-idcard" class="form-input" placeholder="110xxxxxxxxxx"></div>' +
+    '<div class="form-group" style="display:flex;gap:1rem">' +
+      '<div style="flex:1"><label class="form-label">วันเช็คอิน</label><input id="bk-cin" class="form-input" type="date" value="' + today + '" onchange="calculateBookingPricePreview()"></div>' +
+      '<div style="flex:1"><label class="form-label">วันเช็คเอาท์</label><input id="bk-cout" class="form-input" type="date" value="' + tomorrow + '" onchange="calculateBookingPricePreview()"></div>' +
+    '</div>' +
+    '<div class="form-group" style="display:flex;gap:1rem">' +
+      '<div style="flex:1"><label class="form-label">จำนวนผู้ใหญ่</label><input id="bk-adult" class="form-input" type="number" value="1" min="1" onchange="calculateBookingPricePreview()"></div>' +
+      '<div style="flex:1"><label class="form-label">คูปองส่วนลด</label><input id="bk-coupon" class="form-input" placeholder="คูปอง (ถ้ามี)" onchange="calculateBookingPricePreview()"></div>' +
+    '</div>' +
+    '<div id="booking-price-preview" style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:0.75rem; margin-bottom:1rem; font-size:0.85rem; display:none"></div>' +
+    '<div style="display:flex;gap:1rem;margin-top:1.5rem">' +
+      '<button class="btn btn-primary" style="flex:1" onclick="submitNewBooking()">✅ ยืนยันการจอง</button>' +
+      '<button class="btn" style="flex:1;background:var(--surface-2)" onclick="closeModal()">ยกเลิก</button>' +
+    '</div>';
+  modal.style.display = 'flex';
+}
+
+function submitNewBooking() {
+  var data = {
+    guestName: document.getElementById('bk-name').value.trim(),
+    guestPhone: document.getElementById('bk-phone').value.trim(),
+    email: document.getElementById('bk-email').value.trim(),
+    idCard: document.getElementById('bk-idcard').value.trim(),
+    nationality: document.getElementById('bk-nationality').value.trim(),
+    roomNo: document.getElementById('bk-room').value.trim(),
+    checkInDate: document.getElementById('bk-cin').value,
+    checkOutDate: document.getElementById('bk-cout').value,
+    couponCode: document.getElementById('bk-coupon').value.trim(),
+    adults: parseInt(document.getElementById('bk-adult').value) || 1
+  };
+  if (!data.guestName || !data.roomNo || !data.checkInDate || !data.checkOutDate) {
+    alert('กรุณากรอกข้อมูลให้ครบ'); return;
+  }
+  google.script.run
+    .withSuccessHandler(function(res) { closeModal(); loadPage('bookings'); alert('✅ จองสำเร็จ! Booking ID: ' + res.bookingId); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .สร้างการจอง(STATE.token, data);
+}
+
+function showBookingModal(roomId, roomNo) {
+  showNewBookingForm();
+  setTimeout(function() {
+    var el = document.getElementById('bk-room');
+    if (el) { el.value = roomNo; el.readOnly = true; }
+    calculateBookingPricePreview();
+  }, 100);
+}
+
+function calculateBookingPricePreview() {
+  var roomNo = document.getElementById('bk-room').value.trim();
+  var cin = document.getElementById('bk-cin').value;
+  var cout = document.getElementById('bk-cout').value;
+  var coupon = document.getElementById('bk-coupon').value.trim();
+  var previewEl = document.getElementById('booking-price-preview');
+  
+  if (!roomNo || !cin || !cout) return;
+  
+  previewEl.style.display = 'block';
+  previewEl.innerHTML = '⏳ กำลังคำนวณราคา...';
+  
+  google.script.run
+    .withSuccessHandler(function(res) {
+      var breakdown = res.roomChargeBreakdown.map(function(d) {
+        return '<div>📅 ' + d.date + ' : ' + fmtMoney(d.rate) + ' ฿ (' + d.season + ')</div>';
+      }).join('');
+      
+      var discountText = '';
+      if (res.couponApplied) {
+        discountText = '<div style="color:var(--success);font-weight:600">ส่วนลดคูปอง (' + res.couponCode + '): -' + fmtMoney(res.couponDiscount) + ' ฿</div>';
+      }
+      
+      previewEl.innerHTML = 
+        '<div style="font-weight:600;margin-bottom:0.5rem;color:var(--accent)">📋 รายละเอียดราคา (' + res.totalNights + ' คืน)</div>' +
+        '<div style="display:flex;flex-direction:column;gap:0.25rem;margin-bottom:0.5rem">' + breakdown + '</div>' +
+        discountText +
+        '<div style="border-top:1px solid var(--border);padding-top:0.5rem;margin-top:0.5rem;display:flex;justify-content:space-between;font-weight:700;font-size:1rem">' +
+          '<span>ยอดรวมสุทธิ:</span>' +
+          '<span style="color:var(--success)">' + fmtMoney(res.totalAmount) + ' ฿</span>' +
+        '</div>';
+    })
+    .withFailureHandler(function(e) {
+      previewEl.innerHTML = '<span style="color:var(--danger)">❌ ไม่สามารถคำนวณราคาได้: ' + e.message + '</span>';
+    })
+    .คำนวณราคาสมบูรณ์จากเลขห้อง(STATE.token, roomNo, cin, cout, coupon);
+}
+
+// ===== HOUSEKEEPING =====
+function renderHousekeeping() {
+  google.script.run
+    .withSuccessHandler(function(tasks) {
+      var statusLabel = {pending:'รอดำเนินการ',in_progress:'กำลังทำ',done:'เสร็จแล้ว',inspected:'ตรวจแล้ว'};
+      var rows = tasks.map(function(t) {
+        var sc = t.status==='done'||t.status==='inspected'?'badge-available':t.status==='in_progress'?'badge-dirty':'badge-oor';
+        var actions = '';
+        if (t.status==='pending') actions = '<button class="btn btn-sm btn-primary" onclick="startTask(\'' + t.taskId + '\')">เริ่มทำ</button>';
+        else if (t.status==='in_progress') actions = '<button class="btn btn-sm btn-success" onclick="doneTask(\'' + t.taskId + '\')">เสร็จสิ้น</button>';
+        else if (t.status==='done') actions = '<button class="btn btn-sm" style="background:var(--accent)" onclick="inspectTask(\'' + t.taskId + '\')">ตรวจรับ</button>';
+        return '<tr><td>' + t.roomNo + '</td><td>' + (t.taskType||'-') + '</td><td><span class="badge ' + sc + '">' + (statusLabel[t.status]||t.status) + '</span></td><td>' + (t.assignedToName||'-') + '</td><td>' + actions + '</td></tr>';
+      }).join('');
+      document.getElementById('page-content').innerHTML =
+        '<h1 class="page-title">🧹 งานทำความสะอาด</h1>' +
+        '<div class="card"><table><thead><tr><th>ห้อง</th><th>ประเภทงาน</th><th>สถานะ</th><th>ผู้รับผิดชอบ</th><th>ดำเนินการ</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+    })
+    .withFailureHandler(handleError)
+    .ดึงงานทำความสะอาดทั้งหมด(STATE.token);
+}
+
+function startTask(id) { google.script.run.withSuccessHandler(function(){loadPage('housekeeping');}).withFailureHandler(handleError).เริ่มงานทำความสะอาด(STATE.token,id); }
+function doneTask(id) { google.script.run.withSuccessHandler(function(){loadPage('housekeeping');}).withFailureHandler(handleError).เสร็จงานทำความสะอาด(STATE.token,id); }
+function inspectTask(id) { google.script.run.withSuccessHandler(function(){loadPage('housekeeping');}).withFailureHandler(handleError).ตรวจรับงานทำความสะอาด(STATE.token,id); }
+
+// ===== REPORTS =====
+function renderReports() {
+  google.script.run
+    .withSuccessHandler(function(data) {
+      document.getElementById('page-content').innerHTML =
+        '<h1 class="page-title">📈 รายงาน</h1>' +
+        '<div class="kpi-grid">' +
+          '<div class="kpi-card"><div class="kpi-value" style="color:var(--success)">' + fmtMoney(data.monthRevenue) + '</div><div class="kpi-label">รายรับเดือนนี้ (฿)</div></div>' +
+          '<div class="kpi-card"><div class="kpi-value">' + data.monthBookings + '</div><div class="kpi-label">การจองเดือนนี้</div></div>' +
+          '<div class="kpi-card"><div class="kpi-value">' + data.avgOccupancy + '%</div><div class="kpi-label">Occupancy เฉลี่ย</div></div>' +
+          '<div class="kpi-card"><div class="kpi-value">' + fmtMoney(data.avgDailyRate) + '</div><div class="kpi-label">ADR (฿)</div></div>' +
+        '</div>' +
+        '<div class="card" style="margin-top:1rem"><h3>Revenue Per Available Room (RevPAR)</h3>' +
+        '<div style="font-size:2rem;font-weight:700;color:var(--accent);margin-top:.5rem">' + fmtMoney(data.revPAR) + ' ฿</div></div>';
+    })
+    .withFailureHandler(handleError)
+    .ดึงรายงานสรุป(STATE.token);
+}
+
+// ===== ADD-ONS =====
+function showAddonsModal(bookingId, roomNo) {
+  var modal = document.getElementById('modal');
+  var body = document.getElementById('modal-body');
+  body.innerHTML = '⏳ กำลังโหลดรายการแอดออน...';
+  modal.style.display = 'flex';
+  
+  google.script.run
+    .withSuccessHandler(function(addons) {
+      google.script.run
+        .withSuccessHandler(function(templates) {
+          var optionRows = templates.map(function(t) {
+            return '<option value="' + t.ID + '" data-price="' + t.Price + '" data-name="' + t.Name + '">' + t.Name + ' (' + t.Price + ' ฿/' + t.Unit + ')</option>';
+          }).join('');
+          
+          var listRows = addons.map(function(a) {
+            return '<tr>' +
+              '<td>' + a.AddonName + '</td>' +
+              '<td>' + a.Qty + '</td>' +
+              '<td>' + fmtMoney(a.UnitPrice) + ' ฿</td>' +
+              '<td>' + fmtMoney(a.Amount) + ' ฿</td>' +
+              '<td>' + (a.AddonDate || '') + '</td>' +
+              '<td><button class="btn btn-sm btn-danger" style="padding:0.2rem 0.4rem;font-size:0.75rem" onclick="deleteBookingAddon(\'' + a.ID + '\',\'' + bookingId + '\',\'' + roomNo + '\')">🗑️ ลบ</button></td>' +
+            '</tr>';
+          }).join('');
+          
+          body.innerHTML =
+            '<h2 style="margin-bottom:1rem">🛍️ จัดการค่าบริการเสริม (ห้อง ' + roomNo + ')</h2>' +
+            '<div class="card" style="margin-bottom:1rem;padding:1rem">' +
+              '<h4 style="margin-bottom:0.5rem">➕ เพิ่มรายการบริการเสริม</h4>' +
+              '<div class="form-group">' +
+                '<label class="form-label">เลือกบริการ</label>' +
+                '<select id="ad-template-select" class="form-select" onchange="updateAddonTemplatePrice()">' +
+                  '<option value="">-- กรอกเองแบบกำหนดเอง --</option>' +
+                  optionRows +
+                '</select>' +
+              '</div>' +
+              '<div class="form-group">' +
+                '<label class="form-label">ชื่อบริการ/สินค้า</label>' +
+                '<input id="ad-name" class="form-input" placeholder="เช่น มินิบาร์, บริการสปา">' +
+              '</div>' +
+              '<div style="display:flex;gap:0.5rem" class="form-group">' +
+                '<div style="flex:1"><label class="form-label">ราคาต่อหน่วย (฿)</label><input id="ad-price" class="form-input" type="number" value="0"></div>' +
+                '<div style="flex:1"><label class="form-label">จำนวน</label><input id="ad-qty" class="form-input" type="number" value="1" min="1"></div>' +
+              '</div>' +
+              '<div class="form-group"><label class="form-label">หมายเหตุ</label><input id="ad-notes" class="form-input" placeholder="หมายเหตุเสริม"></div>' +
+              '<button class="btn btn-primary" style="width:100%;justify-content:center" onclick="addBookingAddon(\'' + bookingId + '\',\'' + roomNo + '\')">✅ เพิ่มบริการเสริม</button>' +
+            '</div>' +
+            '<div class="card" style="padding:1rem;max-height:300px;overflow-y:auto">' +
+              '<h4 style="margin-bottom:0.5rem">รายการบริการเสริมของจองนี้</h4>' +
+              '<table><thead><tr><th>รายการ</th><th>จำนวน</th><th>ราคา</th><th>รวม</th><th>วันที่</th><th></th></tr></thead><tbody>' +
+                (listRows || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">ไม่มีบริการเสริม</td></tr>') +
+              '</tbody></table>' +
+            '</div>' +
+            '<div style="display:flex;justify-content:flex-end;margin-top:1.5rem">' +
+              '<button class="btn" style="background:var(--surface-2)" onclick="closeModal();loadPage(\'bookings\')">ปิดหน้าต่าง</button>' +
+            '</div>';
+        })
+        .withFailureHandler(handleError)
+        .ดึงเทมเพลตแอดออนทั้งหมด(STATE.token);
+    })
+    .withFailureHandler(handleError)
+    .ดึงรายการบันทึกแอดออนทั้งหมด(STATE.token, bookingId);
+}
+
+function updateAddonTemplatePrice() {
+  var select = document.getElementById('ad-template-select');
+  var selected = select.options[select.selectedIndex];
+  if (select.value === '') {
+    document.getElementById('ad-name').value = '';
+    document.getElementById('ad-price').value = '0';
+  } else {
+    document.getElementById('ad-name').value = selected.getAttribute('data-name');
+    document.getElementById('ad-price').value = selected.getAttribute('data-price');
+  }
+}
+
+function addBookingAddon(bookingId, roomNo) {
+  var data = {
+    AddonName: document.getElementById('ad-name').value.trim(),
+    UnitPrice: parseFloat(document.getElementById('ad-price').value) || 0,
+    Qty: parseInt(document.getElementById('ad-qty').value) || 1,
+    Notes: document.getElementById('ad-notes').value.trim()
+  };
+  if (!data.AddonName) return alert('กรุณาระบุชื่อบริการ');
+  google.script.run
+    .withSuccessHandler(function() { showAddonsModal(bookingId, roomNo); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .เพิ่มแอดออนการจอง(STATE.token, bookingId, data);
+}
+
+function deleteBookingAddon(id, bookingId, roomNo) {
+  if (!confirm('ต้องการลบรายการนี้ใช่หรือไม่?')) return;
+  google.script.run
+    .withSuccessHandler(function() { showAddonsModal(bookingId, roomNo); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .ลบแอดออนการจอง(STATE.token, id, bookingId);
+}
+
+// ===== LEGAL LOGS =====
+function renderLegalLogs() {
+  google.script.run
+    .withSuccessHandler(function(guests) {
+      var rows = guests.map(function(g) {
+        var checkInDate = g.CheckIn ? g.CheckIn.toString().slice(0, 10) : '-';
+        var checkOutDate = g.CheckOut ? g.CheckOut.toString().slice(0, 10) : '-';
+        
+        var rr3Checked = g.RR3Printed === 'TRUE' || g.RR3Printed === true;
+        var rr4Checked = g.RR4Submitted === 'TRUE' || g.RR4Submitted === true;
+        var tm30Checked = g.TM30Submitted === 'TRUE' || g.TM30Submitted === true;
+        
+        return '<tr>' +
+          '<td><strong>' + g.RoomNumber + '</strong></td>' +
+          '<td>' + (g.GuestNameTH || '-') + '<br><small style="color:var(--text-muted)">' + (g.GuestNameEN || '-') + '</small></td>' +
+          '<td>' + (g.Nationality || '-') + '</td>' +
+          '<td>' + (g.IDCardNo || g.PassportNo || '-') + '</td>' +
+          '<td>' + checkInDate + '</td>' +
+          '<td>' + checkOutDate + '</td>' +
+          '<td><input type="checkbox" ' + (rr3Checked ? 'checked' : '') + ' onclick="toggleLegalStatus(\'' + g.ID + '\', \'rr3Printed\', ' + !rr3Checked + ')"> พิมพ์แล้ว</td>' +
+          '<td><input type="checkbox" ' + (rr4Checked ? 'checked' : '') + ' onclick="toggleLegalStatus(\'' + g.ID + '\', \'rr4Submitted\', ' + !rr4Checked + ')"> ส่งแล้ว</td>' +
+          '<td><input type="checkbox" ' + (tm30Checked ? 'checked' : '') + ' onclick="toggleLegalStatus(\'' + g.ID + '\', \'tm30Submitted\', ' + !tm30Checked + ')"> ส่งแล้ว' +
+            (tm30Checked && g.TM30SubmittedAt ? '<br><small style="font-size:0.7rem;color:var(--text-muted)">' + g.TM30SubmittedAt.slice(0,10) + '</small>' : '') + '</td>' +
+          '<td>' +
+            '<button class="btn btn-sm btn-ghost" style="padding:0.2rem 0.4rem;font-size:0.75rem" onclick="showLegalGuestModal(null,null,null,\'' + g.ID + '\')">📝 แก้ไข</button> ' +
+            '<button class="btn btn-sm" style="background:var(--danger);padding:0.2rem 0.4rem;font-size:0.75rem" onclick="deleteLegalGuest(\'' + g.ID + '\')">🗑️</button>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+      
+      document.getElementById('page-content').innerHTML =
+        '<h1 class="page-title">📋 รายงานคนเข้าเมือง & ทะเบียน ร.ร. 3 / ร.ร. 4</h1>' +
+        '<div style="display:flex;justify-content:space-between;margin-bottom:1rem;gap:0.5rem;flex-wrap:wrap">' +
+          '<div>' +
+            '<button class="btn btn-primary" onclick="showLegalGuestModal()">➕ ลงทะเบียนต่างด้าวใหม่</button> ' +
+            '<button class="btn btn-ghost" onclick="exportLegalReport()">📊 ส่งออกรายงาน Excel</button>' +
+          '</div>' +
+          '<div style="display:flex;gap:0.5rem;align-items:center">' +
+            '<span style="font-size:0.85rem;color:var(--text-muted)">กรองข้อมูล:</span>' +
+            '<select id="lg-filter-type" class="form-select" style="width:160px;padding:0.4rem" onchange="filterLegalLogs()">' +
+              '<option value="all">แขกทั้งหมด</option>' +
+              '<option value="foreign">เฉพาะต่างชาติ</option>' +
+              '<option value="tm30_pending">รอส่ง ตม.30 (ต่างชาติ)</option>' +
+            '</select>' +
+          '</div>' +
+        '</div>' +
+        '<div class="card"><table><thead><tr>' +
+          '<th>ห้อง</th><th>ชื่อแขก</th><th>สัญชาติ</th><th>บัตร/พาสปอร์ต</th><th>เช็คอิน</th><th>เช็คเอาท์</th><th>ร.ร. 3</th><th>ร.ร. 4</th><th>ตม. 30 (TM30)</th><th>ดำเนินการ</th>' +
+        '</tr></thead><tbody id="legal-logs-tbody">' + 
+          (rows || '<tr><td colspan="10" style="text-align:center;color:var(--text-muted)">ไม่มีประวัติข้อมูลประชากร</td></tr>') + 
+        '</tbody></table></div>';
+    })
+    .withFailureHandler(handleError)
+    .ดึงผู้เข้าพักตามกฎหมาย(STATE.token);
+}
+
+function filterLegalLogs() {
+  var type = document.getElementById('lg-filter-type').value;
+  var filter = {};
+  if (type === 'foreign') filter.isForeign = true;
+  if (type === 'tm30_pending') filter.tm30 = 'pending';
+  
+  google.script.run
+    .withSuccessHandler(function(guests) {
+      var rows = guests.map(function(g) {
+        var checkInDate = g.CheckIn ? g.CheckIn.toString().slice(0, 10) : '-';
+        var checkOutDate = g.CheckOut ? g.CheckOut.toString().slice(0, 10) : '-';
+        
+        var rr3Checked = g.RR3Printed === 'TRUE' || g.RR3Printed === true;
+        var rr4Checked = g.RR4Submitted === 'TRUE' || g.RR4Submitted === true;
+        var tm30Checked = g.TM30Submitted === 'TRUE' || g.TM30Submitted === true;
+        
+        return '<tr>' +
+          '<td><strong>' + g.RoomNumber + '</strong></td>' +
+          '<td>' + (g.GuestNameTH || '-') + '<br><small style="color:var(--text-muted)">' + (g.GuestNameEN || '-') + '</small></td>' +
+          '<td>' + (g.Nationality || '-') + '</td>' +
+          '<td>' + (g.IDCardNo || g.PassportNo || '-') + '</td>' +
+          '<td>' + checkInDate + '</td>' +
+          '<td>' + checkOutDate + '</td>' +
+          '<td><input type="checkbox" ' + (rr3Checked ? 'checked' : '') + ' onclick="toggleLegalStatus(\'' + g.ID + '\', \'rr3Printed\', ' + !rr3Checked + ')"> พิมพ์แล้ว</td>' +
+          '<td><input type="checkbox" ' + (rr4Checked ? 'checked' : '') + ' onclick="toggleLegalStatus(\'' + g.ID + '\', \'rr4Submitted\', ' + !rr4Checked + ')"> ส่งแล้ว</td>' +
+          '<td><input type="checkbox" ' + (tm30Checked ? 'checked' : '') + ' onclick="toggleLegalStatus(\'' + g.ID + '\', \'tm30Submitted\', ' + !tm30Checked + ')"> ส่งแล้ว' +
+            (tm30Checked && g.TM30SubmittedAt ? '<br><small style="font-size:0.7rem;color:var(--text-muted)">' + g.TM30SubmittedAt.slice(0,10) + '</small>' : '') + '</td>' +
+          '<td>' +
+            '<button class="btn btn-sm btn-ghost" style="padding:0.2rem 0.4rem;font-size:0.75rem" onclick="showLegalGuestModal(null,null,null,\'' + g.ID + '\')">📝 แก้ไข</button> ' +
+            '<button class="btn btn-sm" style="background:var(--danger);padding:0.2rem 0.4rem;font-size:0.75rem" onclick="deleteLegalGuest(\'' + g.ID + '\')">🗑️</button>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+      
+      document.getElementById('legal-logs-tbody').innerHTML = 
+        rows || '<tr><td colspan="10" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลตามตัวเลือกกรอง</td></tr>';
+    })
+    .withFailureHandler(handleError)
+    .ดึงผู้เข้าพักตามกฎหมาย(STATE.token, filter);
+}
+
+function toggleLegalStatus(id, field, value) {
+  var updates = {};
+  updates[field] = value;
+  google.script.run
+    .withSuccessHandler(function() { 
+      if (STATE.currentPage === 'legal_logs') {
+        filterLegalLogs();
+      } else {
+        loadPage(STATE.currentPage);
+      }
+    })
+    .withFailureHandler(handleError)
+    .อัปเดตสถานะผู้เข้าพักตามกฎหมาย(STATE.token, id, updates);
+}
+
+function deleteLegalGuest(id) {
+  if (!confirm('ต้องการลบประวัติการพักแบบเป็นทางการของคนเข้าเมืองนี้?')) return;
+  google.script.run
+    .withSuccessHandler(function() { filterLegalLogs(); })
+    .withFailureHandler(handleError)
+    .ลบผู้เข้าพักตามกฎหมาย(STATE.token, id);
+}
+
+function showLegalGuestModal(bookingId, roomNo, guestName, id) {
+  var modal = document.getElementById('modal');
+  var body = document.getElementById('modal-body');
+  modal.style.display = 'flex';
+  body.innerHTML = '⏳ กำลังประมวลผลฟอร์ม...';
+  
+  var title = id ? '📝 แก้ไขข้อมูลประชากรตามกฎหมาย' : '📋 บันทึกรายงานคนเข้าเมือง ร.ร. 3 / ตม. 30';
+  
+  if (id) {
+    google.script.run
+      .withSuccessHandler(function(list) {
+        var g = list.filter(function(x) { return x.ID === id; })[0];
+        renderLegalForm(g, title, id);
+      })
+      .withFailureHandler(handleError)
+      .ดึงผู้เข้าพักตามกฎหมาย(STATE.token);
+  } else {
+    var today = new Date().toISOString().slice(0, 10);
+    var dummyGuest = {
+      BookingID: bookingId || '',
+      RoomNumber: roomNo || '',
+      GuestNameTH: guestName || '',
+      GuestNameEN: '',
+      Nationality: 'ไทย',
+      IDCardNo: '',
+      PassportNo: '',
+      BirthDate: '',
+      Gender: 'M',
+      Address: '',
+      CheckIn: today,
+      CheckOut: today
+    };
+    renderLegalForm(dummyGuest, title, null);
+  }
+}
+
+function renderLegalForm(g, title, recordId) {
+  var body = document.getElementById('modal-body');
+  body.innerHTML =
+    '<h2 style="margin-bottom:1.5rem">' + title + '</h2>' +
+    '<input type="hidden" id="lg-id" value="' + (recordId || '') + '">' +
+    '<input type="hidden" id="lg-booking-id" value="' + (g.BookingID || '') + '">' +
+    '<div class="form-group"><label class="form-label">เลขที่ห้อง</label><input id="lg-room" class="form-input" value="' + (g.RoomNumber || '') + '" placeholder="เช่น 101"></div>' +
+    '<div class="form-group" style="display:flex;gap:1rem">' +
+      '<div style="flex:1"><label class="form-label">ชื่อภาษาไทย</label><input id="lg-name-th" class="form-input" value="' + (g.GuestNameTH || '') + '"></div>' +
+      '<div style="flex:1"><label class="form-label">ชื่อภาษาอังกฤษ</label><input id="lg-name-en" class="form-input" value="' + (g.GuestNameEN || '') + '" placeholder="EN Name for foreigners"></div>' +
+    '</div>' +
+    '<div class="form-group" style="display:flex;gap:1rem">' +
+      '<div style="flex:1"><label class="form-label">สัญชาติ</label><input id="lg-nationality" class="form-input" value="' + (g.Nationality || 'ไทย') + '"></div>' +
+      '<div style="flex:1">' +
+        '<label class="form-label">เพศ</label>' +
+        '<select id="lg-gender" class="form-select">' +
+          '<option value="M" ' + (g.Gender === 'M' ? 'selected' : '') + '>ชาย</option>' +
+          '<option value="F" ' + (g.Gender === 'F' ? 'selected' : '') + '>หญิง</option>' +
+        '</select>' +
+      '</div>' +
+    '</div>' +
+    '<div class="form-group" style="display:flex;gap:1rem">' +
+      '<div style="flex:1"><label class="form-label">เลขบัตรประจำตัวประชาชน</label><input id="lg-idcard" class="form-input" value="' + (g.IDCardNo || '') + '"></div>' +
+      '<div style="flex:1"><label class="form-label">เลขหนังสือเดินทาง (Passport)</label><input id="lg-passport" class="form-input" value="' + (g.PassportNo || '') + '"></div>' +
+    '</div>' +
+    '<div class="form-group" style="display:flex;gap:1rem">' +
+      '<div style="flex:1"><label class="form-label">วันเกิด</label><input id="lg-birth" class="form-input" type="date" value="' + (g.BirthDate ? g.BirthDate.slice(0,10) : '') + '"></div>' +
+      '<div style="flex:1"></div>' +
+    '</div>' +
+    '<div class="form-group"><label class="form-label">ที่อยู่ลูกค้า</label><textarea id="lg-address" class="form-input" style="height:60px">' + (g.Address || '') + '</textarea></div>' +
+    '<div class="form-group" style="display:flex;gap:1rem">' +
+      '<div style="flex:1"><label class="form-label">วันที่เช็คอิน</label><input id="lg-cin" class="form-input" type="date" value="' + (g.CheckIn ? g.CheckIn.slice(0,10) : '') + '"></div>' +
+      '<div style="flex:1"><label class="form-label">วันที่เช็คเอาท์</label><input id="lg-cout" class="form-input" type="date" value="' + (g.CheckOut ? g.CheckOut.slice(0,10) : '') + '"></div>' +
+    '</div>' +
+    '<div style="display:flex;gap:1rem;margin-top:1.5rem">' +
+      '<button class="btn btn-primary" style="flex:1" onclick="submitLegalGuest()">✅ บันทึกข้อมูล</button>' +
+      '<button class="btn" style="flex:1;background:var(--surface-2)" onclick="closeModal()">ยกเลิก</button>' +
+    '</div>';
+}
+
+function submitLegalGuest() {
+  var data = {
+    ID: document.getElementById('lg-id').value,
+    bookingId: document.getElementById('lg-booking-id').value,
+    roomNumber: document.getElementById('lg-room').value.trim(),
+    guestNameTh: document.getElementById('lg-name-th').value.trim(),
+    guestNameEn: document.getElementById('lg-name-en').value.trim(),
+    nationality: document.getElementById('lg-nationality').value.trim(),
+    gender: document.getElementById('lg-gender').value,
+    idCardNo: document.getElementById('lg-idcard').value.trim(),
+    passportNo: document.getElementById('lg-passport').value.trim(),
+    birthDate: document.getElementById('lg-birth').value,
+    address: document.getElementById('lg-address').value.trim(),
+    checkIn: document.getElementById('lg-cin').value,
+    checkOut: document.getElementById('lg-cout').value
+  };
+  
+  if (!data.roomNumber || !data.guestNameTh) {
+    return alert('กรุณากรอกข้อมูลเลขห้องและชื่ออย่างน้อยภาษาไทย');
+  }
+  
+  google.script.run
+    .withSuccessHandler(function() { 
+      closeModal(); 
+      if (STATE.currentPage === 'legal_logs') {
+        filterLegalLogs();
+      } else {
+        alert('✅ บันทึกข้อมูลประชากรตามกฎหมายสำเร็จ');
+      }
+    })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .บันทึกผู้เข้าพักตามกฎหมาย(STATE.token, data);
+}
+
+function exportLegalReport() {
+  var printWindow = window.open('', '_blank');
+  var currentLogs = document.getElementById('legal-logs-tbody').outerHTML;
+  printWindow.document.write(
+    '<html><head><title>Immigration Report Export</title>' +
+    '<style>' +
+      'body { font-family: sans-serif; padding: 20px; }' +
+      'table { width: 100%; border-collapse: collapse; margin-top: 20px; }' +
+      'th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }' +
+      'th { background: #f0f0f0; }' +
+      'input[type="checkbox"] { pointer-events: none; }' +
+      'button, .btn { display: none; }' +
+    '</style>' +
+    '</head><body>' +
+      '<h2>รายงานทะเบียนคนต่างด้าวและผู้พัก (ร.ร. 3 / ร.ร. 4 / TM30)</h2>' +
+      '<p>โรงแรม RoomScope PMS — วันที่ออกรายงาน: ' + new Date().toLocaleDateString('th-TH') + '</p>' +
+      '<table><thead><tr>' +
+        '<th>ห้อง</th><th>ชื่อแขก</th><th>สัญชาติ</th><th>บัตร/พาสปอร์ต</th><th>เช็คอิน</th><th>เช็คเอาท์</th><th>ร.ร. 3</th><th>ร.ร. 4</th><th>ตม. 30</th>' +
+      '</tr></thead>' + currentLogs + '</table>' +
+    '</body></html>'
+  );
+  printWindow.document.close();
+  printWindow.focus();
+  setTimeout(function() { printWindow.print(); }, 500);
+}
+
+// ===== FINANCIAL DOCUMENTS =====
+function renderFinancialDocs() {
+  google.script.run
+    .withSuccessHandler(function(docs) {
+      var docTypes = { receipt: 'ใบเสร็จรับเงิน (Receipt)', tax_invoice: 'ใบกำกับภาษี (Tax Invoice)', invoice: 'ใบแจ้งหนี้ (Invoice)', quotation: 'ใบเสนอราคา (Quotation)' };
+      var statusLabel = { issued: 'ออกแล้ว', voided: 'ยกเลิกแล้ว' };
+      
+      var rows = docs.map(function(d) {
+        var sc = d.Status === 'issued' ? 'badge-available' : 'badge-oor';
+        
+        var cust = {};
+        try { cust = JSON.parse(d.CustomerSnapshotJSON || '{}'); } catch(e) {}
+        var custText = (cust.name || '-') + (cust.phone ? '<br><small>📞 ' + cust.phone + '</small>' : '');
+        
+        var actions = '';
+        if (d.Status === 'issued') {
+          if (d.PDFUrl) {
+            actions += '<a class="btn btn-sm btn-ghost" href="' + d.PDFUrl + '" target="_blank">📄 เปิด PDF</a> ';
+          }
+          actions += '<button class="btn btn-sm" style="background:var(--danger);padding:0.25rem 0.5rem;font-size:0.75rem" onclick="voidFinancialDoc(\'' + d.DocID + '\')">❌ ยกเลิก</button>';
+        } else {
+          actions += '<span style="font-size:0.75rem;color:var(--danger)">เหตุผล: ' + (d.VoidedReason || '-') + '</span>';
+        }
+        
+        return '<tr>' +
+          '<td><strong>' + d.DocNo + '</strong></td>' +
+          '<td>' + (docTypes[d.DocType] || d.DocType) + '</td>' +
+          '<td>' + (d.BookingID || '-') + '</td>' +
+          '<td>' + custText + '</td>' +
+          '<td>' + fmtMoney(d.Subtotal) + ' ฿</td>' +
+          '<td>' + fmtMoney(d.VatAmount) + ' ฿</td>' +
+          '<td><strong>' + fmtMoney(d.Total) + ' ฿</strong></td>' +
+          '<td><span class="badge ' + sc + '">' + (statusLabel[d.Status]||d.Status) + '</span></td>' +
+          '<td>' + (d.IssuedAt ? d.IssuedAt.slice(0,10) + ' ' + d.IssuedAt.slice(11,16) : '') + '</td>' +
+          '<td>' + actions + '</td>' +
+        '</tr>';
+      }).join('');
+      
+      document.getElementById('page-content').innerHTML =
+        '<h1 class="page-title">🧾 ระบบเอกสารทางการเงิน (บัญชีและการเงิน)</h1>' +
+        '<div style="margin-bottom:1rem"><button class="btn btn-primary" onclick="showDirectIssueModal()">➕ ออกเอกสารโดยตรง (ไม่ระบุจอง)</button></div>' +
+        '<div class="card"><table><thead><tr>' +
+          '<th>เลขที่เอกสาร</th><th>ประเภท</th><th>Booking ID</th><th>ลูกค้า</th><th>ก่อน VAT</th><th>VAT 7%</th><th>ยอดรวมทั้งสิ้น</th><th>สถานะ</th><th>วันที่ออก</th><th>ดำเนินการ</th>' +
+        '</tr></thead><tbody>' + 
+          (rows || '<tr><td colspan="10" style="text-align:center;color:var(--text-muted)">ยังไม่มีการออกเอกสารทางการเงิน</td></tr>') + 
+        '</tbody></table></div>';
+    })
+    .withFailureHandler(handleError)
+    .ดึงเอกสารการเงินทั้งหมด(STATE.token);
+}
+
+function showIssueDocModal(bookingId, totalAmount) {
+  var modal = document.getElementById('modal');
+  var body = document.getElementById('modal-body');
+  modal.style.display = 'flex';
+  body.innerHTML =
+    '<h2 style="margin-bottom:1.5rem">🧾 ออกเอกสารทางการเงิน</h2>' +
+    '<div class="form-group">' +
+      '<label class="form-label">ประเภทเอกสาร</label>' +
+      '<select id="is-doc-type" class="form-select">' +
+        '<option value="receipt">ใบเสร็จรับเงิน (Receipt)</option>' +
+        '<option value="tax_invoice">ใบกำกับภาษี (Tax Invoice)</option>' +
+        '<option value="invoice">ใบแจ้งหนี้ (Invoice)</option>' +
+        '<option value="quotation">ใบเสนอราคา (Quotation)</option>' +
+      '</select>' +
+    '</div>' +
+    '<div class="form-group"><label class="form-label">Booking ID</label><input class="form-input" value="' + bookingId + '" readOnly></div>' +
+    '<div class="form-group"><label class="form-label">ยอดเงินรวมในเอกสาร</label><input class="form-input" value="' + fmtMoney(totalAmount) + ' ฿" readOnly></div>' +
+    '<p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1.5rem">💡 ระบบจะคัดลอกข้อมูลผู้เข้าพักและคิดแยกมูลค่าก่อน VAT (7%) ให้อัตโนมัติ</p>' +
+    '<div style="display:flex;gap:1rem">' +
+      '<button class="btn btn-primary" style="flex:1" onclick="issueFinancialDoc(\'' + bookingId + '\')">ออกเอกสารจริง</button>' +
+      '<button class="btn" style="flex:1;background:var(--surface-2)" onclick="closeModal()">ยกเลิก</button>' +
+    '</div>';
+}
+
+function issueFinancialDoc(bookingId) {
+  var type = document.getElementById('is-doc-type').value;
+  google.script.run
+    .withSuccessHandler(function(res) {
+      closeModal();
+      loadPage('financial_docs');
+      alert('✅ ออกเอกสารเรียบร้อย เลขที่: ' + res.docNo + (res.pdfUrl ? '\nสร้าง PDF เรียบร้อยแล้ว' : ''));
+    })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .ออกเอกสารการเงิน(STATE.token, type, bookingId);
+}
+
+function voidFinancialDoc(docId) {
+  var reason = prompt('ระบุเหตุผลในการยกเลิกเอกสารนี้:');
+  if (!reason) return;
+  google.script.run
+    .withSuccessHandler(function() {
+      if (STATE.currentPage === 'financial_docs') renderFinancialDocs();
+      else loadPage(STATE.currentPage);
+      alert('✅ ยกเลิกเอกสารเรียบร้อย');
+    })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .ยกเลิกเอกสารการเงิน(STATE.token, docId, reason);
+}
+
+function showDirectIssueModal() {
+  var modal = document.getElementById('modal');
+  var body = document.getElementById('modal-body');
+  modal.style.display = 'flex';
+  
+  body.innerHTML =
+    '<h2 style="margin-bottom:1.5rem">➕ ออกเอกสารการเงินโดยตรง (Direct Billing)</h2>' +
+    '<div class="form-group">' +
+      '<label class="form-label">ประเภทเอกสาร</label>' +
+      '<select id="di-doc-type" class="form-select">' +
+        '<option value="receipt">ใบเสร็จรับเงิน (Receipt)</option>' +
+        '<option value="tax_invoice">ใบกำกับภาษี (Tax Invoice)</option>' +
+        '<option value="invoice">ใบแจ้งหนี้ (Invoice)</option>' +
+        '<option value="quotation">ใบเสนอราคา (Quotation)</option>' +
+      '</select>' +
+    '</div>' +
+    '<div class="card" style="padding:1rem;margin-bottom:1rem">' +
+      '<h4 style="margin-bottom:0.5rem">ข้อมูลลูกค้า</h4>' +
+      '<div class="form-group"><label class="form-label">ชื่อนามสกุลลูกค้า</label><input id="di-cust-name" class="form-input" placeholder="เช่น บริษัท หรือ ชื่อแขก"></div>' +
+      '<div style="display:flex;gap:0.5rem" class="form-group">' +
+        '<div style="flex:1"><label class="form-label">เบอร์โทรศัพท์</label><input id="di-cust-phone" class="form-input"></div>' +
+        '<div style="flex:1"><label class="form-label">เลขประจำตัวผู้เสียภาษี/บัตร</label><input id="di-cust-tax" class="form-input"></div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="card" style="padding:1rem;margin-bottom:1.5rem">' +
+      '<h4 style="margin-bottom:0.5rem">รายการสินค้า / บริการ</h4>' +
+      '<div class="form-group"><label class="form-label">ชื่อสินค้า/บริการ</label><input id="di-item-name" class="form-input" placeholder="เช่น ค่าที่พักสัมมนา, ค่าอาหารจัดเลี้ยง"></div>' +
+      '<div style="display:flex;gap:0.5rem" class="form-group">' +
+        '<div style="flex:1"><label class="form-label">ราคาต่อหน่วย</label><input id="di-item-price" class="form-input" type="number" value="0" onchange="calcDirectTotals()"></div>' +
+        '<div style="flex:1"><label class="form-label">จำนวน</label><input id="di-item-qty" class="form-input" type="number" value="1" min="1" onchange="calcDirectTotals()"></div>' +
+      '</div>' +
+      '<div style="text-align:right;font-size:0.9rem;font-weight:600;margin-top:0.5rem;color:var(--success)">' +
+        'ยอดรวมชาร์จ: <span id="di-total-label">0.00</span> ฿' +
+      '</div>' +
+    '</div>' +
+    '<div style="display:flex;gap:1rem">' +
+      '<button class="btn btn-primary" style="flex:1" onclick="submitDirectDoc()">✅ ยืนยันออกเอกสาร</button>' +
+      '<button class="btn" style="flex:1;background:var(--surface-2)" onclick="closeModal()">ยกเลิก</button>' +
+    '</div>';
+    calcDirectTotals();
+}
+
+function calcDirectTotals() {
+  var price = parseFloat(document.getElementById('di-item-price').value) || 0;
+  var qty = parseInt(document.getElementById('di-item-qty').value) || 1;
+  document.getElementById('di-total-label').textContent = fmtMoney(price * qty);
+}
+
+function submitDirectDoc() {
+  var price = parseFloat(document.getElementById('di-item-price').value) || 0;
+  var qty = parseInt(document.getElementById('di-item-qty').value) || 1;
+  var total = price * qty;
+  var subtotal = total / 1.07;
+  var vatAmount = total - subtotal;
+  
+  var data = {
+    docType: document.getElementById('di-doc-type').value,
+    customerType: 'person',
+    customerSnapshot: {
+      name: document.getElementById('di-cust-name').value.trim(),
+      phone: document.getElementById('di-cust-phone').value.trim(),
+      idCard: document.getElementById('di-cust-tax').value.trim()
+    },
+    items: [{
+      name: document.getElementById('di-item-name').value.trim() || 'บริการทั่วไป',
+      price: price,
+      qty: qty,
+      amount: total
+    }],
+    subtotal: subtotal.toFixed(2),
+    vatAmount: vatAmount.toFixed(2),
+    total: total.toFixed(2)
+  };
+  
+  if (!data.customerSnapshot.name) return alert('กรุณากรอกชื่อลูกค้า');
+  
+  google.script.run
+    .withSuccessHandler(function(res) {
+      closeModal();
+      renderFinancialDocs();
+      alert('✅ ออกเอกสารทางการเงินโดยตรงเรียบร้อย เลขที่: ' + res.docNo);
+    })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .สร้างเอกสารการเงินโดยตรง(STATE.token, data);
+}
+
+// ===== SETTINGS SCREEN =====
+var STATE_SETTINGS = { currentSubTab: 'property' };
+
+function renderSettings() {
+  document.getElementById('page-content').innerHTML =
+    '<h1 class="page-title">⚙️ ตั้งค่าระบบและการจัดการฐานข้อมูล</h1>' +
+    '<div class="card" style="margin-bottom: 1.5rem; padding: 0.5rem">' +
+      '<div style="display:flex;gap:0.5rem;flex-wrap:wrap">' +
+        '<div class="sub-tab active" data-subtab="property" onclick="switchSettingsTab(\'property\')">🏨 ข้อมูลโรงแรม & ไลน์</div>' +
+        '<div class="sub-tab" data-subtab="rooms" onclick="switchSettingsTab(\'rooms\')">🛏️ โครงสร้างห้องพัก</div>' +
+        '<div class="sub-tab" data-subtab="rates" onclick="switchSettingsTab(\'rates\')">📅 เรทราคาซีซั่น</div>' +
+        '<div class="sub-tab" data-subtab="coupons" onclick="switchSettingsTab(\'coupons\')">🏷️ คูปอง & สินค้าเสริม</div>' +
+        '<div class="sub-tab" data-subtab="staff" onclick="switchSettingsTab(\'staff\')">👥 บัญชีพนักงาน</div>' +
+      '</div>' +
+    '</div>' +
+    '<div id="settings-tab-content"></div>';
+    
+  switchSettingsTab(STATE_SETTINGS.currentSubTab);
+}
+
+function switchSettingsTab(tabName) {
+  STATE_SETTINGS.currentSubTab = tabName;
+  document.querySelectorAll('.sub-tab').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.subtab === tabName);
+  });
+  
+  var container = document.getElementById('settings-tab-content');
+  container.innerHTML = '<div class="loading-spinner">⏳ กำลังโหลดการตั้งค่า...</div>';
+  
+  if (tabName === 'property') loadPropertySettings();
+  else if (tabName === 'rooms') loadRoomsSettings();
+  else if (tabName === 'rates') loadRatesSettings();
+  else if (tabName === 'coupons') loadCouponsSettings();
+  else if (tabName === 'staff') loadStaffSettings();
+}
+
+// Sub-tab 1: Property Settings
+function loadPropertySettings() {
+  google.script.run
+    .withSuccessHandler(function(prop) {
+      google.script.run
+        .withSuccessHandler(function(config) {
+          var container = document.getElementById('settings-tab-content');
+          container.innerHTML =
+            '<div class="card" style="margin-bottom:1rem">' +
+              '<h3>🏨 ตั้งค่าข้อมูลโรงแรม</h3>' +
+              '<div style="margin-top:1rem">' +
+                '<input type="hidden" id="se-prop-id" value="' + (prop.PropertyID || '') + '">' +
+                '<div class="form-group"><label class="form-label">ชื่อโรงแรม</label><input id="se-prop-name" class="form-input" value="' + (prop.Name || '') + '"></div>' +
+                '<div class="form-group"><label class="form-label">เลขประจำตัวผู้เสียภาษี (Tax ID)</label><input id="se-prop-tax" class="form-input" value="' + (prop.TaxID || '') + '"></div>' +
+                '<div class="form-group"><label class="form-label">ที่อยู่โรงแรม</label><textarea id="se-prop-addr" class="form-input" style="height:60px">' + (prop.Address || '') + '</textarea></div>' +
+                '<button class="btn btn-primary" onclick="savePropertySettings()">✅ บันทึกข้อมูลโรงแรม</button>' +
+              '</div>' +
+            '</div>' +
+            '<div class="card">' +
+              '<h3>🤖 ตั้งค่า LINE OA & ระบบแจ้งเตือน (CONFIG)</h3>' +
+              '<div style="margin-top:1rem">' +
+                '<div class="form-group"><label class="form-label">LINE Channel Access Token</label><input id="se-line-token" class="form-input" value="' + (config.LINE_OA_TOKEN || '') + '" type="password"></div>' +
+                '<div class="form-group"><label class="form-label">LINE Channel Secret</label><input id="se-line-secret" class="form-input" value="' + (config.LINE_OA_SECRET || '') + '" type="password"></div>' +
+                '<div class="form-group"><label class="form-label">อีเมลส่งรายงานระบบ (Audit Report Email)</label><input id="se-cfg-email" class="form-input" value="' + (config.NOTIFICATION_EMAIL || '') + '"></div>' +
+                '<button class="btn btn-primary" onclick="saveConfigSettings()">✅ บันทึกการตั้งค่าระบบ</button>' +
+              '</div>' +
+            '</div>';
+        })
+        .withFailureHandler(handleError)
+        .ดึงค่าคอนฟิกทั้งหมด(STATE.token);
+    })
+    .withFailureHandler(handleError)
+    .ดึงข้อมูลโรงแรม(STATE.token);
+}
+
+function savePropertySettings() {
+  var data = {
+    PropertyID: document.getElementById('se-prop-id').value,
+    Name: document.getElementById('se-prop-name').value.trim(),
+    TaxID: document.getElementById('se-prop-tax').value.trim(),
+    Address: document.getElementById('se-prop-addr').value.trim()
+  };
+  if (!data.Name) return alert('กรุณากรอกชื่อโรงแรม');
+  google.script.run
+    .withSuccessHandler(function() { alert('✅ บันทึกข้อมูลโรงแรมสำเร็จ'); loadPropertySettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .บันทึกข้อมูลโรงแรม(STATE.token, data);
+}
+
+function saveConfigSettings() {
+  var data = {
+    LINE_OA_TOKEN: document.getElementById('se-line-token').value.trim(),
+    LINE_OA_SECRET: document.getElementById('se-line-secret').value.trim(),
+    NOTIFICATION_EMAIL: document.getElementById('se-cfg-email').value.trim()
+  };
+  google.script.run
+    .withSuccessHandler(function() { alert('✅ บันทึกการตั้งค่า CONFIG สำเร็จ'); loadPropertySettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .บันทึกค่าคอนฟิก(STATE.token, data);
+}
+
+// Sub-tab 2: Rooms structure (Buildings, Floors, RoomTypes, Rooms)
+function loadRoomsSettings() {
+  google.script.run
+    .withSuccessHandler(function(rooms) {
+      google.script.run
+        .withSuccessHandler(function(types) {
+          google.script.run
+            .withSuccessHandler(function(buildings) {
+              google.script.run
+                .withSuccessHandler(function(floors) {
+                  renderRoomsSettingsUI(rooms, types, buildings, floors);
+                })
+                .withFailureHandler(handleError)
+                .ดึงชั้นทั้งหมด(STATE.token);
+            })
+            .withFailureHandler(handleError)
+            .ดึงอาคารทั้งหมด(STATE.token);
+        })
+        .withFailureHandler(handleError)
+        .ดึงข้อมูลประเภทห้องทั้งหมด(STATE.token);
+    })
+    .withFailureHandler(handleError)
+    .ดึงข้อมูลห้องพักทั้งหมด(STATE.token);
+}
+
+function renderRoomsSettingsUI(rooms, types, buildings, floors) {
+  var container = document.getElementById('settings-tab-content');
+  
+  // 1. Buildings table
+  var bRows = buildings.map(function(b) {
+    return '<tr>' +
+      '<td><strong>' + b.BuildingID + '</strong></td>' +
+      '<td>' + b.Name + '</td>' +
+      '<td>' + b.TotalFloors + ' ชั้น</td>' +
+      '<td>' + (b.Description || '-') + '</td>' +
+      '<td>' +
+        '<button class="btn btn-sm btn-ghost" onclick="editBuildingForm(\'' + b.BuildingID + '\',\'' + b.Name + '\',' + b.TotalFloors + ',\'' + (b.Description || '') + '\')">📝</button> ' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteBuilding(\'' + b.BuildingID + '\')">🗑️</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+  
+  // 1.5. Floors table
+  var bldMap = {};
+  buildings.forEach(function(b) { bldMap[b.BuildingID] = b; });
+  
+  var fRows = floors.map(function(f) {
+    var bName = bldMap[f.BuildingID] ? bldMap[f.BuildingID].Name : 'อาคารอื่น';
+    return '<tr>' +
+      '<td><strong>' + f.FloorID + '</strong></td>' +
+      '<td>' + bName + '</td>' +
+      '<td>ชั้นที่ ' + f.FloorNumber + '</td>' +
+      '<td>' +
+        '<button class="btn btn-sm btn-ghost" onclick="editFloorForm(\'' + f.FloorID + '\',\'' + f.BuildingID + '\',' + f.FloorNumber + ')">📝</button> ' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteFloor(\'' + f.FloorID + '\')">🗑️</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+  
+  // 2. Room Types table
+  var rtRows = types.map(function(t) {
+    return '<tr>' +
+      '<td><strong>' + t.RoomTypeID + '</strong></td>' +
+      '<td>' + t.Name + '</td>' +
+      '<td>' + fmtMoney(t.BasePriceDaily) + ' ฿ / ' + fmtMoney(t.BasePriceMonthly) + ' ฿</td>' +
+      '<td>ผู้ใหญ่: ' + t.MaxAdult + ' / เด็ก: ' + t.MaxChild + '</td>' +
+      '<td>' + (t.BedType || '-') + ' (' + t.SizeSqm + ' ตร.ม.)</td>' +
+      '<td>' +
+        '<button class="btn btn-sm btn-ghost" onclick="editRoomTypeForm(\'' + t.RoomTypeID + '\',\'' + t.Name + '\',' + t.BasePriceDaily + ',' + t.BasePriceMonthly + ',' + t.MaxAdult + ',' + t.MaxChild + ',\'' + (t.BedType || '') + '\',' + t.SizeSqm + ',\'' + (t.Description || '') + '\')">📝</button> ' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteRoomType(\'' + t.RoomTypeID + '\')">🗑️</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+
+  // 3. Rooms table
+  var rRows = rooms.map(function(r) {
+    var typeText = r.roomTypeName || '-';
+    var statusText = {available:'ว่าง',occupied:'มีผู้เข้าพัก',dirty:'รอทำความสะอาด',clean_inspected:'ตรวจแล้ว',out_of_order:'ปิดซ่อม'}[r.status]||r.status;
+    return '<tr>' +
+      '<td><strong>' + r.roomNo + '</strong></td>' +
+      '<td>' + (r.buildingName || '-') + ' (ชั้น ' + (r.floorNumber || '-') + ')</td>' +
+      '<td>' + typeText + '</td>' +
+      '<td><span class="badge badge-' + (r.status==='clean_inspected'?'available':r.status==='out_of_order'?'oor':r.status) + '">' + statusText + '</span></td>' +
+      '<td>' + (r.note || '-') + '</td>' +
+      '<td>' +
+        '<button class="btn btn-sm btn-ghost" onclick="editRoomForm(\'' + r.roomId + '\',\'' + r.roomNo + '\',\'' + r.status + '\',\'' + (r.note || '') + '\')">📝</button> ' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteRoom(\'' + r.roomId + '\')">🗑️</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+
+  container.innerHTML =
+    '<div class="card" style="margin-bottom:1.5rem">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:1rem"><h3>🏢 จัดการอาคารและโครงสร้างตึก</h3><button class="btn btn-primary" onclick="showBuildingModalForm()">➕ เพิ่มอาคาร</button></div>' +
+      '<table><thead><tr><th>ID</th><th>ชื่ออาคาร</th><th>จำนวนชั้น</th><th>รายละเอียด</th><th>ดำเนินการ</th></tr></thead><tbody>' +
+        (bRows || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">ยังไม่มีข้อมูลอาคาร</td></tr>') +
+      '</tbody></table>' +
+    '</div>' +
+    '<div class="card" style="margin-bottom:1.5rem">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:1rem"><h3>🏢 จัดการชั้นในอาคาร (Floors)</h3><button class="btn btn-primary" onclick="showFloorModalForm()">➕ เพิ่มชั้นใหม่</button></div>' +
+      '<table><thead><tr><th>ID</th><th>ชื่ออาคาร</th><th>หมายเลขชั้น</th><th>ดำเนินการ</th></tr></thead><tbody>' +
+        (fRows || '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">ยังไม่มีข้อมูลชั้น</td></tr>') +
+      '</tbody></table>' +
+    '</div>' +
+    '<div class="card" style="margin-bottom:1.5rem">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:1rem"><h3>🛏️ จัดการประเภทห้องพัก (Room Types)</h3><button class="btn btn-primary" onclick="showRoomTypeModalForm()">➕ เพิ่มประเภทห้อง</button></div>' +
+      '<table><thead><tr><th>ID</th><th>ประเภทห้อง</th><th>ราคา (รายวัน/รายเดือน)</th><th>ความจุ</th><th>เตียง/ขนาด</th><th>ดำเนินการ</th></tr></thead><tbody>' +
+        (rtRows || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">ยังไม่มีประเภทห้องพัก</td></tr>') +
+      '</tbody></table>' +
+    '</div>' +
+    '<div class="card">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:1rem"><h3>🏨 จัดการหมายเลขห้องพัก (Rooms)</h3><button class="btn btn-primary" onclick="showRoomModalForm()">➕ เพิ่มห้องพักใหม่</button></div>' +
+      '<table><thead><tr><th>เลขห้อง</th><th>อาคาร/ชั้น</th><th>ประเภทห้อง</th><th>สถานะ</th><th>หมายเหตุ</th><th>ดำเนินการ</th></tr></thead><tbody>' +
+        (rRows || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">ยังไม่มีห้องพักในระบบ</td></tr>') +
+      '</tbody></table>' +
+    '</div>';
+}
+
+// Building Helpers
+function showBuildingModalForm(id, name, floors, desc) {
+  var modal = document.getElementById('modal');
+  var body = document.getElementById('modal-body');
+  modal.style.display = 'flex';
+  body.innerHTML =
+    '<h2 style="margin-bottom:1.5rem">' + (id ? '📝 แก้ไขข้อมูลอาคาร' : '➕ เพิ่มอาคารใหม่') + '</h2>' +
+    '<input type="hidden" id="bld-id" value="' + (id || '') + '">' +
+    '<div class="form-group"><label class="form-label">ชื่ออาคาร</label><input id="bld-name" class="form-input" value="' + (name || '') + '" placeholder="เช่น Building A, Main Wing"></div>' +
+    '<div class="form-group"><label class="form-label">จำนวนชั้น</label><input id="bld-floors" class="form-input" type="number" value="' + (floors || 1) + '" min="1"></div>' +
+    '<div class="form-group"><label class="form-label">คำอธิบาย/รายละเอียด</label><input id="bld-desc" class="form-input" value="' + (desc || '') + '" placeholder="เช่น ชั้น 1-3 ห้องพักทั่วไป"></div>' +
+    '<div style="display:flex;gap:1rem;margin-top:1.5rem">' +
+      '<button class="btn btn-primary" style="flex:1" onclick="submitBuilding()">✅ บันทึกอาคาร</button>' +
+      '<button class="btn" style="flex:1;background:var(--surface-2)" onclick="closeModal()">ยกเลิก</button>' +
+    '</div>';
+}
+function editBuildingForm(id, name, floors, desc) { showBuildingModalForm(id, name, floors, desc); }
+function submitBuilding() {
+  var data = {
+    BuildingID: document.getElementById('bld-id').value,
+    Name: document.getElementById('bld-name').value.trim(),
+    TotalFloors: parseInt(document.getElementById('bld-floors').value) || 1,
+    Description: document.getElementById('bld-desc').value.trim()
+  };
+  if (!data.Name) return alert('กรุณากรอกชื่ออาคาร');
+  google.script.run
+    .withSuccessHandler(function() { closeModal(); loadRoomsSettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .บันทึกอาคาร(STATE.token, data);
+}
+function deleteBuilding(id) {
+  if (!confirm('ยืนยันลบอาคารรหัส: ' + id + '? (ข้อมูลห้องจะยังไม่ถูกลบ แต่ชั้นและอาคารจะไม่อยู่ในระบบ)')) return;
+  google.script.run
+    .withSuccessHandler(function() { loadRoomsSettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .ลบอาคาร(STATE.token, id);
+}
+
+// Floor Helpers
+function showFloorModalForm(id, bldId, number) {
+  var modal = document.getElementById('modal');
+  var body = document.getElementById('modal-body');
+  modal.style.display = 'flex';
+  body.innerHTML = '⏳ กำลังเตรียมฟอร์ม...';
+  
+  google.script.run
+    .withSuccessHandler(function(buildings) {
+      var bOptions = buildings.map(function(b) {
+        return '<option value="' + b.BuildingID + '" ' + (b.BuildingID === bldId ? 'selected' : '') + '>' + b.Name + '</option>';
+      }).join('');
+      
+      body.innerHTML =
+        '<h2 style="margin-bottom:1.5rem">' + (id ? '📝 แก้ไขข้อมูลชั้น' : '➕ เพิ่มชั้นใหม่') + '</h2>' +
+        '<input type="hidden" id="flr-id" value="' + (id || '') + '">' +
+        '<div class="form-group"><label class="form-label">เลือกอาคาร</label><select id="flr-building" class="form-select">' + bOptions + '</select></div>' +
+        '<div class="form-group"><label class="form-label">หมายเลขชั้น</label><input id="flr-number" class="form-input" type="number" value="' + (number || 1) + '" min="1"></div>' +
+        '<div style="display:flex;gap:1rem;margin-top:1.5rem">' +
+          '<button class="btn btn-primary" style="flex:1" onclick="submitFloor()">✅ บันทึกชั้น</button>' +
+          '<button class="btn" style="flex:1;background:var(--surface-2)" onclick="closeModal()">ยกเลิก</button>' +
+        '</div>';
+    })
+    .withFailureHandler(handleError)
+    .ดึงอาคารทั้งหมด(STATE.token);
+}
+
+function editFloorForm(id, bldId, number) { showFloorModalForm(id, bldId, number); }
+
+function submitFloor() {
+  var data = {
+    FloorID: document.getElementById('flr-id').value,
+    BuildingID: document.getElementById('flr-building').value,
+    FloorNumber: parseInt(document.getElementById('flr-number').value) || 1
+  };
+  if (!data.BuildingID) return alert('กรุณาเลือกอาคาร');
+  google.script.run
+    .withSuccessHandler(function() { closeModal(); loadRoomsSettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .บันทึกชั้น(STATE.token, data);
+}
+
+function deleteFloor(id) {
+  if (!confirm('ยืนยันลบชั้นรหัส: ' + id + '? (ข้อมูลห้องบนชั้นนี้อาจได้รับผลกระทบ)')) return;
+  google.script.run
+    .withSuccessHandler(function() { loadRoomsSettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .ลบชั้น(STATE.token, id);
+}
+
+// Room Type Helpers
+function showRoomTypeModalForm(id, name, daily, monthly, adult, child, bed, size, desc) {
+  var modal = document.getElementById('modal');
+  var body = document.getElementById('modal-body');
+  modal.style.display = 'flex';
+  body.innerHTML =
+    '<h2 style="margin-bottom:1.5rem">' + (id ? '📝 แก้ไขประเภทห้องพัก' : '➕ เพิ่มประเภทห้องพักใหม่') + '</h2>' +
+    '<input type="hidden" id="rtp-id" value="' + (id || '') + '">' +
+    '<div class="form-group"><label class="form-label">ชื่อประเภทห้อง</label><input id="rtp-name" class="form-input" value="' + (name || '') + '" placeholder="เช่น Standard Double, Deluxe Suite"></div>' +
+    '<div style="display:flex;gap:0.5rem" class="form-group">' +
+      '<div style="flex:1"><label class="form-label">ราคาต่อคืน (฿)</label><input id="rtp-daily" class="form-input" type="number" value="' + (daily || 0) + '"></div>' +
+      '<div style="flex:1"><label class="form-label">ราคาต่อเดือน (฿)</label><input id="rtp-monthly" class="form-input" type="number" value="' + (monthly || 0) + '"></div>' +
+    '</div>' +
+    '<div style="display:flex;gap:0.5rem" class="form-group">' +
+      '<div style="flex:1"><label class="form-label">ผู้ใหญ่สูงสุด</label><input id="rtp-adult" class="form-input" type="number" value="' + (adult || 2) + '"></div>' +
+      '<div style="flex:1"><label class="form-label">เด็กสูงสุด</label><input id="rtp-child" class="form-input" type="number" value="' + (child || 0) + '"></div>' +
+    '</div>' +
+    '<div style="display:flex;gap:0.5rem" class="form-group">' +
+      '<div style="flex:1"><label class="form-label">ประเภทเตียง</label><input id="rtp-bed" class="form-input" value="' + (bed || 'King Bed') + '" placeholder="King Bed, Twin Bed"></div>' +
+      '<div style="flex:1"><label class="form-label">ขนาดห้อง (ตร.ม.)</label><input id="rtp-size" class="form-input" type="number" value="' + (size || 32) + '"></div>' +
+    '</div>' +
+    '<div class="form-group"><label class="form-label">รายละเอียดประเภทห้อง</label><input id="rtp-desc" class="form-input" value="' + (desc || '') + '"></div>' +
+    '<div style="display:flex;gap:1rem;margin-top:1.5rem">' +
+      '<button class="btn btn-primary" style="flex:1" onclick="submitRoomType()">✅ บันทึกประเภทห้อง</button>' +
+      '<button class="btn" style="flex:1;background:var(--surface-2)" onclick="closeModal()">ยกเลิก</button>' +
+    '</div>';
+}
+function editRoomTypeForm(id, name, daily, monthly, adult, child, bed, size, desc) { showRoomTypeModalForm(id, name, daily, monthly, adult, child, bed, size, desc); }
+function submitRoomType() {
+  var data = {
+    RoomTypeID: document.getElementById('rtp-id').value,
+    Name: document.getElementById('rtp-name').value.trim(),
+    BasePriceDaily: parseFloat(document.getElementById('rtp-daily').value) || 0,
+    BasePriceMonthly: parseFloat(document.getElementById('rtp-monthly').value) || 0,
+    MaxAdult: parseInt(document.getElementById('rtp-adult').value) || 2,
+    MaxChild: parseInt(document.getElementById('rtp-child').value) || 0,
+    BedType: document.getElementById('rtp-bed').value.trim(),
+    SizeSqm: parseInt(document.getElementById('rtp-size').value) || 0,
+    Description: document.getElementById('rtp-desc').value.trim()
+  };
+  if (!data.Name) return alert('กรุณากรอกชื่อประเภทห้อง');
+  google.script.run
+    .withSuccessHandler(function() { closeModal(); loadRoomsSettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .บันทึกประเภทห้อง(STATE.token, data);
+}
+function deleteRoomType(id) {
+  if (!confirm('ยืนยันลบประเภทห้องพักรหัส: ' + id + '?')) return;
+  google.script.run
+    .withSuccessHandler(function() { loadRoomsSettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .ลบประเภทห้อง(STATE.token, id);
+}
+
+// Room Helpers
+function showRoomModalForm(id, no, status, note) {
+  var modal = document.getElementById('modal');
+  var body = document.getElementById('modal-body');
+  modal.style.display = 'flex';
+  body.innerHTML = '⏳ กำลังประมวลผลฟอร์ม...';
+  
+  google.script.run
+    .withSuccessHandler(function(types) {
+      google.script.run
+        .withSuccessHandler(function(floors) {
+          google.script.run
+            .withSuccessHandler(function(buildings) {
+              var rtOptions = types.map(function(t) { return '<option value="' + t.RoomTypeID + '">' + t.Name + '</option>'; }).join('');
+              
+              var flMap = {};
+              floors.forEach(function(f) { flMap[f.FloorID] = f; });
+              var bldMap = {};
+              buildings.forEach(function(b) { bldMap[b.BuildingID] = b; });
+              
+              var flOptions = floors.map(function(f) {
+                var bName = bldMap[f.BuildingID] ? bldMap[f.BuildingID].Name : 'อาคารอื่น';
+                return '<option value="' + f.FloorID + '">' + bName + ' - ชั้นที่ ' + f.FloorNumber + '</option>';
+              }).join('');
+              
+              body.innerHTML =
+                '<h2 style="margin-bottom:1.5rem">' + (id ? '📝 แก้ไขข้อมูลห้องพัก' : '➕ เพิ่มหมายเลขห้องใหม่') + '</h2>' +
+                '<input type="hidden" id="rom-id" value="' + (id || '') + '">' +
+                '<div class="form-group"><label class="form-label">หมายเลขห้อง (Room Number)</label><input id="rom-no" class="form-input" value="' + (no || '') + '" placeholder="เช่น 101, 102"></div>' +
+                '<div class="form-group"><label class="form-label">อาคารและชั้น</label><select id="rom-floor" class="form-select">' + flOptions + '</select></div>' +
+                '<div class="form-group"><label class="form-label">ประเภทห้องพัก</label><select id="rom-type" class="form-select">' + rtOptions + '</select></div>' +
+                '<div class="form-group">' +
+                  '<label class="form-label">สถานะเริ่มต้น</label>' +
+                  '<select id="rom-status" class="form-select">' +
+                    '<option value="available" ' + (status === 'available' ? 'selected' : '') + '>ว่างพร้อมขาย</option>' +
+                    '<option value="dirty" ' + (status === 'dirty' ? 'selected' : '') + '>รอทำความสะอาด</option>' +
+                    '<option value="out_of_order" ' + (status === 'out_of_order' ? 'selected' : '') + '>ปิดซ่อมชั่วคราว</option>' +
+                  '</select>' +
+                '</div>' +
+                '<div class="form-group"><label class="form-label">หมายเหตุ</label><input id="rom-note" class="form-input" value="' + (note || '') + '" placeholder="หมายเหตุพิเศษเกี่ยวกับห้อง"></div>' +
+                '<div style="display:flex;gap:1rem;margin-top:1.5rem">' +
+                  '<button class="btn btn-primary" style="flex:1" onclick="submitRoom()">✅ บันทึกห้องพัก</button>' +
+                  '<button class="btn" style="flex:1;background:var(--surface-2)" onclick="closeModal()">ยกเลิก</button>' +
+                '</div>';
+            })
+            .withFailureHandler(handleError)
+            .ดึงอาคารทั้งหมด(STATE.token);
+        })
+        .withFailureHandler(handleError)
+        .ดึงชั้นทั้งหมด(STATE.token);
+    })
+    .withFailureHandler(handleError)
+    .ดึงข้อมูลประเภทห้องทั้งหมด(STATE.token);
+}
+function editRoomForm(id, no, status, note) { showRoomModalForm(id, no, status, note); }
+function submitRoom() {
+  var data = {
+    RoomID: document.getElementById('rom-id').value,
+    RoomNo: document.getElementById('rom-no').value.trim(),
+    FloorID: document.getElementById('rom-floor').value,
+    RoomTypeID: document.getElementById('rom-type').value,
+    Status: document.getElementById('rom-status').value,
+    Note: document.getElementById('rom-note').value.trim()
+  };
+  if (!data.RoomNo) return alert('กรุณากรอกเลขห้อง');
+  google.script.run
+    .withSuccessHandler(function() { closeModal(); loadRoomsSettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .บันทึกห้อง(STATE.token, data);
+}
+function deleteRoom(id) {
+  if (!confirm('ยืนยันลบห้องพักรหัส: ' + id + '?')) return;
+  google.script.run
+    .withSuccessHandler(function() { loadRoomsSettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .ลบห้อง(STATE.token, id);
+}
+// Sub-tab 3: Seasons & Season Rates
+function loadRatesSettings() {
+  google.script.run
+    .withSuccessHandler(function(seasons) {
+      google.script.run
+        .withSuccessHandler(function(rates) {
+          google.script.run
+            .withSuccessHandler(function(types) {
+              renderRatesSettingsUI(seasons, rates, types);
+            })
+            .withFailureHandler(handleError)
+            .ดึงข้อมูลประเภทห้องทั้งหมด(STATE.token);
+        })
+        .withFailureHandler(handleError)
+        .ดึงราคาซีซั่นทั้งหมด(STATE.token);
+    })
+    .withFailureHandler(handleError)
+    .ดึงซีซั่นทั้งหมด(STATE.token);
+}
+
+function renderRatesSettingsUI(seasons, rates, types) {
+  var container = document.getElementById('settings-tab-content');
+  var typeMap = {};
+  types.forEach(function(t) { typeMap[t.RoomTypeID] = t.Name || t.RoomTypeName; });
+
+  var sRows = seasons.map(function(s) {
+    var from = s.StartDate ? s.StartDate.toString().slice(0, 10) : '-';
+    var to = s.EndDate ? s.EndDate.toString().slice(0, 10) : '-';
+    return '<tr>' +
+      '<td><strong>' + s.Name + '</strong></td>' +
+      '<td>' + from + '</td>' +
+      '<td>' + to + '</td>' +
+      '<td>' + (s.Priority || 0) + '</td>' +
+      '<td>' +
+        '<button class="btn btn-sm btn-ghost" onclick="editSeasonForm(\'' + s.SeasonID + '\',\'' + s.Name + '\',\'' + from + '\',\'' + to + '\',' + (s.Priority||1) + ')">📝</button> ' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteSeason(\'' + s.SeasonID + '\')">🗑️</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+
+  var rRows = rates.map(function(r) {
+    var sName = seasons.filter(function(s) { return s.SeasonID === r.SeasonID; })[0];
+    var tName = typeMap[r.RoomTypeID] || r.RoomTypeID;
+    return '<tr>' +
+      '<td>' + (sName ? sName.Name : r.SeasonID) + '</td>' +
+      '<td>' + tName + '</td>' +
+      '<td>' + fmtMoney(r.PriceDaily) + ' ฿</td>' +
+      '<td>' + fmtMoney(r.PriceMonthly) + ' ฿</td>' +
+      '<td>' +
+        '<button class="btn btn-sm btn-ghost" onclick="editSeasonRateForm(\'' + r.SeasonRateID + '\',\'' + r.SeasonID + '\',\'' + r.RoomTypeID + '\',' + (r.PriceDaily||0) + ',' + (r.PriceMonthly||0) + ')">📝</button> ' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteSeasonRate(\'' + r.SeasonRateID + '\')">🗑️</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+
+  container.innerHTML =
+    '<div class="card" style="margin-bottom:1.5rem">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:1rem"><h3>📅 จัดการช่วงซีซั่นท่องเที่ยว (Seasons)</h3><button class="btn btn-primary" onclick="showSeasonModalForm()">➕ เพิ่มซีซั่น</button></div>' +
+      '<table><thead><tr><th>ชื่อซีซั่น</th><th>วันเริ่ม</th><th>วันสิ้นสุด</th><th>Priority</th><th>ดำเนินการ</th></tr></thead><tbody>' +
+        (sRows || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">ยังไม่มีข้อมูลซีซั่น</td></tr>') +
+      '</tbody></table>' +
+    '</div>' +
+    '<div class="card">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:1rem"><h3>💰 ผูกราคาพิเศษตามซีซั่น (Season Rates)</h3><button class="btn btn-primary" onclick="showSeasonRateModalForm()">➕ เพิ่มเรทราคา</button></div>' +
+      '<table><thead><tr><th>ซีซั่น</th><th>ประเภทห้อง</th><th>ราคาต่อคืน (฿)</th><th>ราคาต่อเดือน (฿)</th><th>ดำเนินการ</th></tr></thead><tbody>' +
+        (rRows || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">ยังไม่มีการผูกราคาซีซั่น</td></tr>') +
+      '</tbody></table>' +
+    '</div>';
+}
+
+// Season Helpers
+function showSeasonModalForm(id, name, start, end, priority) {
+  var modal = document.getElementById('modal');
+  var body = document.getElementById('modal-body');
+  modal.style.display = 'flex';
+  body.innerHTML =
+    '<h2 style="margin-bottom:1.5rem">' + (id ? '📝 แก้ไขช่วงซีซั่น' : '➕ เพิ่มช่วงซีซั่นท่องเที่ยวใหม่') + '</h2>' +
+    '<input type="hidden" id="sea-id" value="' + (id || '') + '">' +
+    '<div class="form-group"><label class="form-label">ชื่อซีซั่น</label><input id="sea-name" class="form-input" value="' + (name || '') + '" placeholder="เช่น High Season 2026, Songkran Peak"></div>' +
+    '<div style="display:flex;gap:0.5rem" class="form-group">' +
+      '<div style="flex:1"><label class="form-label">วันที่เริ่ม</label><input id="sea-start" class="form-input" type="date" value="' + (start || '') + '"></div>' +
+      '<div style="flex:1"><label class="form-label">วันที่สิ้นสุด</label><input id="sea-end" class="form-input" type="date" value="' + (end || '') + '"></div>' +
+    '</div>' +
+    '<div class="form-group"><label class="form-label">ลำดับความสำคัญ (เลขยิ่งสูง ยิ่งมีผลทับซ้อนก่อน)</label><input id="sea-priority" class="form-input" type="number" value="' + (priority || 1) + '"></div>' +
+    '<div style="display:flex;gap:1rem;margin-top:1.5rem">' +
+      '<button class="btn btn-primary" style="flex:1" onclick="submitSeason()">✅ บันทึกซีซั่น</button>' +
+      '<button class="btn" style="flex:1;background:var(--surface-2)" onclick="closeModal()">ยกเลิก</button>' +
+    '</div>';
+}
+function editSeasonForm(id, name, start, end, priority) { showSeasonModalForm(id, name, start, end, priority); }
+function submitSeason() {
+  var data = {
+    SeasonID: document.getElementById('sea-id').value,
+    Name: document.getElementById('sea-name').value.trim(),
+    StartDate: document.getElementById('sea-start').value,
+    EndDate: document.getElementById('sea-end').value,
+    Priority: parseInt(document.getElementById('sea-priority').value) || 1
+  };
+  if (!data.Name || !data.StartDate || !data.EndDate) return alert('กรุณากรอกข้อมูลให้ครบ');
+  google.script.run
+    .withSuccessHandler(function() { closeModal(); loadRatesSettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .บันทึกซีซั่น(STATE.token, data);
+}
+function deleteSeason(id) {
+  if (!confirm('ยืนยันลบซีซั่นท่องเที่ยว ID: ' + id + '? (เรทราคารายวันของซีซั่นนี้จะลบด้วย)')) return;
+  google.script.run
+    .withSuccessHandler(function() { loadRatesSettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .ลบซีซั่น(STATE.token, id);
+}
+
+// Season Rate Helpers
+function showSeasonRateModalForm(id, seaId, rtId, daily, monthly) {
+  var modal = document.getElementById('modal');
+  var body = document.getElementById('modal-body');
+  modal.style.display = 'flex';
+  body.innerHTML = '⏳ กำลังประมวลผลฟอร์ม...';
+  
+  google.script.run
+    .withSuccessHandler(function(seasons) {
+      google.script.run
+        .withSuccessHandler(function(types) {
+          var sOptions = seasons.map(function(s) { return '<option value="' + s.SeasonID + '" ' + (s.SeasonID===seaId?'selected':'') + '>' + s.Name + '</option>'; }).join('');
+          var tOptions = types.map(function(t) { return '<option value="' + t.RoomTypeID + '" ' + (t.RoomTypeID===rtId?'selected':'') + '>' + t.Name + '</option>'; }).join('');
+          
+          body.innerHTML =
+            '<h2 style="margin-bottom:1.5rem">' + (id ? '📝 แก้ไขราคาพิเศษตามซีซั่น' : '➕ ผูกราคาพิเศษตามซีซั่นใหม่') + '</h2>' +
+            '<input type="hidden" id="srt-id" value="' + (id || '') + '">' +
+            '<div class="form-group"><label class="form-label">เลือกซีซั่นท่องเที่ยว</label><select id="srt-season" class="form-select">' + sOptions + '</select></div>' +
+            '<div class="form-group"><label class="form-label">เลือกประเภทห้อง</label><select id="srt-type" class="form-select">' + tOptions + '</select></div>' +
+            '<div style="display:flex;gap:0.5rem" class="form-group">' +
+              '<div style="flex:1"><label class="form-label">ราคาพิเศษต่อคืน (฿)</label><input id="srt-daily" class="form-input" type="number" value="' + (daily || 0) + '"></div>' +
+              '<div style="flex:1"><label class="form-label">ราคาพิเศษต่อเดือน (฿)</label><input id="srt-monthly" class="form-input" type="number" value="' + (monthly || 0) + '"></div>' +
+            '</div>' +
+            '<div style="display:flex;gap:1rem;margin-top:1.5rem">' +
+              '<button class="btn btn-primary" style="flex:1" onclick="submitSeasonRate()">✅ บันทึกเรทราคา</button>' +
+              '<button class="btn" style="flex:1;background:var(--surface-2)" onclick="closeModal()">ยกเลิก</button>' +
+            '</div>';
+        })
+        .withFailureHandler(handleError)
+        .ดึงข้อมูลประเภทห้องทั้งหมด(STATE.token);
+    })
+    .withFailureHandler(handleError)
+    .ดึงซีซั่นทั้งหมด(STATE.token);
+}
+function editSeasonRateForm(id, seaId, rtId, daily, monthly) { showSeasonRateModalForm(id, seaId, rtId, daily, monthly); }
+function submitSeasonRate() {
+  var data = {
+    SeasonRateID: document.getElementById('srt-id').value,
+    SeasonID: document.getElementById('srt-season').value,
+    RoomTypeID: document.getElementById('srt-type').value,
+    PriceDaily: parseFloat(document.getElementById('srt-daily').value) || 0,
+    PriceMonthly: parseFloat(document.getElementById('srt-monthly').value) || 0
+  };
+  google.script.run
+    .withSuccessHandler(function() { closeModal(); loadRatesSettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .บันทึกราคาซีซั่น(STATE.token, data);
+}
+function deleteSeasonRate(id) {
+  if (!confirm('ยืนยันลบเรทราคาซีซั่นนี้?')) return;
+  google.script.run
+    .withSuccessHandler(function() { loadRatesSettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .ลบราคาซีซั่น(STATE.token, id);
+}
+
+// Sub-tab 4: Coupons & Addon templates Settings
+function loadCouponsSettings() {
+  google.script.run
+    .withSuccessHandler(function(coupons) {
+      google.script.run
+        .withSuccessHandler(function(addons) {
+          renderCouponsSettingsUI(coupons, addons);
+        })
+        .withFailureHandler(handleError)
+        .ดึงเทมเพลตแอดออนทั้งหมด(STATE.token);
+    })
+    .withFailureHandler(handleError)
+    .ดึงคูปองทั้งหมด(STATE.token);
+}
+
+function renderCouponsSettingsUI(coupons, addons) {
+  var container = document.getElementById('settings-tab-content');
+  
+  // 1. Coupons rows
+  var cRows = coupons.map(function(c) {
+    var discText = c.DiscountType === 'percentage' ? c.Value + '%' : fmtMoney(c.Value) + ' ฿';
+    var from = c.ValidFrom ? c.ValidFrom.toString().slice(0, 10) : '';
+    var to = c.ValidTo ? c.ValidTo.toString().slice(0, 10) : '';
+    return '<tr>' +
+      '<td><strong>' + c.Code + '</strong></td>' +
+      '<td>' + discText + '</td>' +
+      '<td>' + from + ' ถึง ' + to + '</td>' +
+      '<td>' + c.UsedCount + ' / ' + c.UsageLimit + ' ครั้ง</td>' +
+      '<td>ขั้นต่ำ ' + c.MinNights + ' คืน</td>' +
+      '<td>' +
+        '<button class="btn btn-sm btn-ghost" onclick="editCouponForm(\'' + c.CouponID + '\',\'' + c.Code + '\',\'' + c.DiscountType + '\',' + c.Value + ',\'' + from + '\',\'' + to + '\',' + c.UsageLimit + ',' + c.UsedCount + ',' + c.MinNights + ')">📝</button> ' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteCoupon(\'' + c.CouponID + '\')">🗑️</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+
+  // 2. Addon Templates rows
+  var adRows = addons.map(function(ad) {
+    var catMap = { food: 'อาหาร/เครื่องดื่ม', service: 'บริการการซ่อม/สปา', transport: 'รับส่งยานพาหนะ', other: 'บริการอื่นๆ' };
+    return '<tr>' +
+      '<td><strong>' + ad.Name + '</strong></td>' +
+      '<td>' + (catMap[ad.Category] || ad.Category) + '</td>' +
+      '<td>' + fmtMoney(ad.Price) + ' ฿ / ' + ad.Unit + '</td>' +
+      '<td><span class="badge badge-' + (ad.Active==='TRUE'||ad.Active===true?'available':'oor') + '">' + (ad.Active==='TRUE'||ad.Active===true?'เปิดขาย':'ปิดใช้งาน') + '</span></td>' +
+      '<td>' +
+        '<button class="btn btn-sm btn-ghost" onclick="editAddonTemplateForm(\'' + ad.ID + '\',\'' + ad.Name + '\',\'' + ad.Category + '\',' + ad.Price + ',\'' + ad.Unit + '\',' + (ad.Active==='TRUE'||ad.Active===true) + ')">📝</button> ' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteAddonTemplate(\'' + ad.ID + '\')">🗑️</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+
+  container.innerHTML =
+    '<div class="card" style="margin-bottom:1.5rem">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:1rem"><h3>🏷️ จัดการคูปองโค้ดส่วนลด (Coupons)</h3><button class="btn btn-primary" onclick="showCouponModalForm()">➕ สร้างคูปอง</button></div>' +
+      '<table><thead><tr><th>รหัสคูปอง</th><th>มูลค่าส่วนลด</th><th>ระยะเวลา</th><th>สถิติใช้งาน</th><th>เงื่อนไขขั้นต่ำ</th><th>ดำเนินการ</th></tr></thead><tbody>' +
+        (cRows || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">ยังไม่มีคูปองส่งเสริมการขาย</td></tr>') +
+      '</tbody></table>' +
+    '</div>' +
+    '<div class="card">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:1rem"><h3>🛍️ จัดการสินค้าเสริม & เทมเพลต (Addons Templates)</h3><button class="btn btn-primary" onclick="showAddonTemplateModalForm()">➕ เพิ่มสินค้าเทมเพลต</button></div>' +
+      '<table><thead><tr><th>ชื่อสินค้า/บริการ</th><th>หมวดหมู่</th><th>ราคาขาย</th><th>สถานะ</th><th>ดำเนินการ</th></tr></thead><tbody>' +
+        (adRows || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">ยังไม่มีสินค้า/บริการเสริมในเทมเพลต</td></tr>') +
+      '</tbody></table>' +
+    '</div>';
+}
+
+// Coupon Helpers
+function showCouponModalForm(id, code, type, val, from, to, limit, used, min) {
+  var modal = document.getElementById('modal');
+  var body = document.getElementById('modal-body');
+  modal.style.display = 'flex';
+  body.innerHTML =
+    '<h2 style="margin-bottom:1.5rem">' + (id ? '📝 แก้ไขคูปองโค้ด' : '➕ เพิ่มคูปองใหม่') + '</h2>' +
+    '<input type="hidden" id="cup-id" value="' + (id || '') + '">' +
+    '<div class="form-group"><label class="form-label">รหัสคูปอง (ตัวพิมพ์ใหญ่ทั้งหมด)</label><input id="cup-code" class="form-input" value="' + (code || '') + '" placeholder="เช่น PROMO10, discount50"></div>' +
+    '<div style="display:flex;gap:0.5rem" class="form-group">' +
+      '<div style="flex:1">' +
+        '<label class="form-label">ประเภทส่วนลด</label>' +
+        '<select id="cup-type" class="form-select">' +
+          '<option value="percentage" ' + (type==='percentage'?'selected':'') + '>เปอร์เซ็นต์ (%)</option>' +
+          '<option value="fixed" ' + (type==='fixed'?'selected':'') + '>จำนวนเงินบาท (฿)</option>' +
+        '</select>' +
+      '</div>' +
+      '<div style="flex:1"><label class="form-label">มูลค่าลด</label><input id="cup-value" class="form-input" type="number" value="' + (val || 0) + '"></div>' +
+    '</div>' +
+    '<div style="display:flex;gap:0.5rem" class="form-group">' +
+      '<div style="flex:1"><label class="form-label">วันที่เริ่ม</label><input id="cup-from" class="form-input" type="date" value="' + (from || '') + '"></div>' +
+      '<div style="flex:1"><label class="form-label">วันที่สิ้นสุด</label><input id="cup-to" class="form-input" type="date" value="' + (to || '') + '"></div>' +
+    '</div>' +
+    '<div style="display:flex;gap:0.5rem" class="form-group">' +
+      '<div style="flex:1"><label class="form-label">สิทธิ์ใช้ได้ทั้งหมด (ครั้ง)</label><input id="cup-limit" class="form-input" type="number" value="' + (limit || 100) + '"></div>' +
+      '<div style="flex:1"><label class="form-label">จำนวนเข้าพักขั้นต่ำ (คืน)</label><input id="cup-min" class="form-input" type="number" value="' + (min || 0) + '"></div>' +
+    '</div>' +
+    '<input type="hidden" id="cup-used" value="' + (used || 0) + '">' +
+    '<div style="display:flex;gap:1rem;margin-top:1.5rem">' +
+      '<button class="btn btn-primary" style="flex:1" onclick="submitCoupon()">✅ บันทึกคูปอง</button>' +
+      '<button class="btn" style="flex:1;background:var(--surface-2)" onclick="closeModal()">ยกเลิก</button>' +
+    '</div>';
+}
+function editCouponForm(id, code, type, val, from, to, limit, used, min) { showCouponModalForm(id, code, type, val, from, to, limit, used, min); }
+function submitCoupon() {
+  var data = {
+    CouponID: document.getElementById('cup-id').value,
+    Code: document.getElementById('cup-code').value.trim().toUpperCase(),
+    DiscountType: document.getElementById('cup-type').value,
+    Value: parseFloat(document.getElementById('cup-value').value) || 0,
+    ValidFrom: document.getElementById('cup-from').value,
+    ValidTo: document.getElementById('cup-to').value,
+    UsageLimit: parseInt(document.getElementById('cup-limit').value) || 100,
+    MinNights: parseInt(document.getElementById('cup-min').value) || 0,
+    UsedCount: parseInt(document.getElementById('cup-used').value) || 0
+  };
+  if (!data.Code || !data.ValidFrom || !data.ValidTo) return alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+  google.script.run
+    .withSuccessHandler(function() { closeModal(); loadCouponsSettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .บันทึกคูปอง(STATE.token, data);
+}
+function deleteCoupon(id) {
+  if (!confirm('ต้องการลบคูปอง ID: ' + id + '?')) return;
+  google.script.run
+    .withSuccessHandler(function() { loadCouponsSettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .ลบคูปอง(STATE.token, id);
+}
+
+// Addon Template Helpers
+function showAddonTemplateModalForm(id, name, cat, price, unit, active) {
+  var modal = document.getElementById('modal');
+  var body = document.getElementById('modal-body');
+  modal.style.display = 'flex';
+  body.innerHTML =
+    '<h2 style="margin-bottom:1.5rem">' + (id ? '📝 แก้ไขสินค้าบริการเสริม' : '➕ เพิ่มสินค้าบริการเสริมในเทมเพลต') + '</h2>' +
+    '<input type="hidden" id="adt-id" value="' + (id || '') + '">' +
+    '<div class="form-group"><label class="form-label">ชื่อสินค้าหรือบริการ</label><input id="adt-name" class="form-input" value="' + (name || '') + '" placeholder="เช่น ค่าน้ำอัดลมมินิบาร์, ค่าบริการซักรีด"></div>' +
+    '<div class="form-group">' +
+      '<label class="form-label">หมวดหมู่</label>' +
+      '<select id="adt-cat" class="form-select">' +
+        '<option value="food" ' + (cat==='food'?'selected':'') + '>อาหารและเครื่องดื่ม</option>' +
+        '<option value="service" ' + (cat==='service'?'selected':'') + '>บริการท่องเที่ยว / นวดสปา</option>' +
+        '<option value="transport" ' + (cat==='transport'?'selected':'') + '>รถรับส่งสนามบิน</option>' +
+        '<option value="other" ' + (cat==='other'?'selected':'') + '>อื่นๆ</option>' +
+      '</select>' +
+    '</div>' +
+    '<div style="display:flex;gap:0.5rem" class="form-group">' +
+      '<div style="flex:1"><label class="form-label">ราคาเสนอขาย (฿)</label><input id="adt-price" class="form-input" type="number" value="' + (price || 0) + '"></div>' +
+      '<div style="flex:1"><label class="form-label">หน่วยนับ</label><input id="adt-unit" class="form-input" value="' + (unit || 'รายการ') + '" placeholder="ชิ้น, รายการ, ชั่วโมง"></div>' +
+    '</div>' +
+    '<div class="form-group">' +
+      '<label class="form-label">สถานะการเปิดขาย</label>' +
+      '<select id="adt-active" class="form-select">' +
+        '<option value="true" ' + (active!==false?'selected':'') + '>เปิดขายปกติ</option>' +
+        '<option value="false" ' + (active===false?'selected':'') + '>ปิดระงับการสั่ง</option>' +
+      '</select>' +
+    '</div>' +
+    '<div style="display:flex;gap:1rem;margin-top:1.5rem">' +
+      '<button class="btn btn-primary" style="flex:1" onclick="submitAddonTemplate()">✅ บันทึกสินค้าเทมเพลต</button>' +
+      '<button class="btn" style="flex:1;background:var(--surface-2)" onclick="closeModal()">ยกเลิก</button>' +
+    '</div>';
+}
+function editAddonTemplateForm(id, name, cat, price, unit, active) { showAddonTemplateModalForm(id, name, cat, price, unit, active); }
+function submitAddonTemplate() {
+  var data = {
+    ID: document.getElementById('adt-id').value,
+    Name: document.getElementById('adt-name').value.trim(),
+    Category: document.getElementById('adt-cat').value,
+    Price: parseFloat(document.getElementById('adt-price').value) || 0,
+    Unit: document.getElementById('adt-unit').value.trim(),
+    Active: document.getElementById('adt-active').value === 'true'
+  };
+  if (!data.Name) return alert('กรุณากรอกชื่อสินค้า');
+  google.script.run
+    .withSuccessHandler(function() { closeModal(); loadCouponsSettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .บันทึกเทมเพลตแอดออน(STATE.token, data);
+}
+function deleteAddonTemplate(id) {
+  if (!confirm('ต้องการลบเทมเพลตสินค้า ID: ' + id + '?')) return;
+  google.script.run
+    .withSuccessHandler(function() { loadCouponsSettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .ลบเทมเพลตแอดออน(STATE.token, id);
+}
+
+// Sub-tab 5: Staff settings
+function loadStaffSettings() {
+  google.script.run
+    .withSuccessHandler(function(staff) {
+      var rows = staff.map(function(s) {
+        var roleMap = { SuperAdmin: 'ผู้ดูแลสูงสุด', PropertyManager: 'ผู้จัดการสาขา', FrontDesk: 'เจ้าหน้าที่ต้อนรับ', Accounting: 'เจ้าหน้าที่บัญชี', Owner: 'เจ้าของกิจการ' };
+        var statusLabel = s.status === 'active' ? ' badge-available' : ' badge-oor';
+        var statusText = s.status === 'active' ? 'ปกติ' : 'ระงับการใช้งาน';
+        
+        return '<tr>' +
+          '<td><strong>' + s.username + '</strong></td>' +
+          '<td>' + s.fullName + '</td>' +
+          '<td>' + (roleMap[s.role] || s.role) + '</td>' +
+          '<td>' + (s.phone || '-') + '</td>' +
+          '<td><span class="badge ' + statusLabel + '">' + statusText + '</span></td>' +
+          '<td>' +
+            '<button class="btn btn-sm btn-ghost" onclick="editStaffForm(\'' + s.userId + '\',\'' + s.username + '\',\'' + s.fullName + '\',\'' + s.role + '\',\'' + (s.phone || '') + '\',\'' + (s.email || '') + '\',\'' + s.status + '\')">📝 แก้ไข</button> ' +
+            (s.username !== 'admin' ? '<button class="btn btn-sm" style="background:var(--danger)" onclick="deleteStaff(\'' + s.userId + '\')">🗑️</button>' : '') +
+          '</td>' +
+        '</tr>';
+      }).join('');
+
+      document.getElementById('settings-tab-content').innerHTML =
+        '<div class="card">' +
+          '<div style="display:flex;justify-content:space-between;margin-bottom:1rem"><h3>👥 รายชื่อพนักงานและสิทธิ์การเข้าถึง</h3><button class="btn btn-primary" onclick="showStaffModalForm()">➕ เพิ่มพนักงานใหม่</button></div>' +
+          '<table><thead><tr><th>Username</th><th>ชื่อ-นามสกุล</th><th>บทบาทสิทธิ์ (Role)</th><th>เบอร์โทร</th><th>สถานะบัญชี</th><th>ดำเนินการ</th></tr></thead><tbody>' +
+            rows +
+          '</tbody></table>' +
+        '</div>';
+    })
+    .withFailureHandler(handleError)
+    .ดึงพนักงานทั้งหมด(STATE.token);
+}
+
+function showStaffModalForm(id, name, full, role, phone, email, status) {
+  var modal = document.getElementById('modal');
+  var body = document.getElementById('modal-body');
+  modal.style.display = 'flex';
+  body.innerHTML =
+    '<h2 style="margin-bottom:1.5rem">' + (id ? '📝 แก้ไขสิทธิ์บัญชีผู้ใช้' : '➕ เพิ่มบัญชีพนักงานใหม่') + '</h2>' +
+    '<input type="hidden" id="usr-id" value="' + (id || '') + '">' +
+    '<div class="form-group"><label class="form-label">ชื่อล็อกอิน (Username)</label><input id="usr-name" class="form-input" value="' + (name || '') + '" placeholder="เช่น receptionist_01" ' + (name === 'admin' ? 'readOnly' : '') + '></div>' +
+    '<div class="form-group"><label class="form-label">รหัสผ่าน ' + (id ? '(กรอกเฉพาะเมื่อต้องการตั้งรหัสใหม่)' : '') + '</label><input id="usr-pass" class="form-input" type="password" placeholder="รหัสผ่านเข้าสู่ระบบ"></div>' +
+    '<div class="form-group"><label class="form-label">ชื่อผู้ใช้งานจริง (Full Name)</label><input id="usr-fullname" class="form-input" value="' + (full || '') + '" placeholder="เช่น นายประจักษ์ ใจดี"></div>' +
+    '<div class="form-group">' +
+      '<label class="form-label">บทบาทสิทธิ์ (Role)</label>' +
+      '<select id="usr-role" class="form-select">' +
+        '<option value="FrontDesk" ' + (role==='FrontDesk'?'selected':'') + '>FrontDesk (พนักงานต้อนรับ)</option>' +
+        '<option value="PropertyManager" ' + (role==='PropertyManager'?'selected':'') + '>PropertyManager (ผู้จัดการ)</option>' +
+        '<option value="Accounting" ' + (role==='Accounting'?'selected':'') + '>Accounting (ฝ่ายบัญชีและการเงิน)</option>' +
+        '<option value="Owner" ' + (role==='Owner'?'selected':'') + '>Owner (เจ้าของโรงแรม)</option>' +
+        '<option value="SuperAdmin" ' + (role==='SuperAdmin'?'selected':'') + '>SuperAdmin (สิทธิ์ดูแลสูงสุด)</option>' +
+      '</select>' +
+    '</div>' +
+    '<div style="display:flex;gap:0.5rem" class="form-group">' +
+      '<div style="flex:1"><label class="form-label">เบอร์โทรศัพท์</label><input id="usr-phone" class="form-input" value="' + (phone || '') + '"></div>' +
+      '<div style="flex:1"><label class="form-label">อีเมล</label><input id="usr-email" class="form-input" value="' + (email || '') + '"></div>' +
+    '</div>' +
+    '<div class="form-group">' +
+      '<label class="form-label">สถานะการทำงาน</label>' +
+      '<select id="usr-status" class="form-select" ' + (name === 'admin' ? 'disabled' : '') + '>' +
+        '<option value="active" ' + (status==='active'?'selected':'') + '>ใช้งานปกติ (Active)</option>' +
+        '<option value="disabled" ' + (status==='disabled'?'selected':'') + '>ระงับการทำงาน (Disabled)</option>' +
+      '</select>' +
+    '</div>' +
+    '<div style="display:flex;gap:1rem;margin-top:1.5rem">' +
+      '<button class="btn btn-primary" style="flex:1" onclick="submitStaff()">✅ บันทึกสิทธิ์พนักงาน</button>' +
+      '<button class="btn" style="flex:1;background:var(--surface-2)" onclick="closeModal()">ยกเลิก</button>' +
+    '</div>';
+}
+function editStaffForm(id, name, full, role, phone, email, status) { showStaffModalForm(id, name, full, role, phone, email, status); }
+function submitStaff() {
+  var data = {
+    userId: document.getElementById('usr-id').value,
+    username: document.getElementById('usr-name').value.trim(),
+    password: document.getElementById('usr-pass').value,
+    fullName: document.getElementById('usr-fullname').value.trim(),
+    role: document.getElementById('usr-role').value,
+    phone: document.getElementById('usr-phone').value.trim(),
+    email: document.getElementById('usr-email').value.trim(),
+    status: document.getElementById('usr-status').value
+  };
+  if (!data.username || !data.fullName) return alert('กรุณากรอกชื่อล็อกอินและชื่อจริง');
+  if (!data.userId && !data.password) return alert('กรุณาระบุรหัสสำหรับพนักงานใหม่');
+  google.script.run
+    .withSuccessHandler(function() { closeModal(); loadStaffSettings(); })
+    .withFailureHandler(function(e) { alert('❌ ' + e.message); })
+    .บันทึกพนักงาน(STATE.token, data);
+}
+function deleteStaff(id) {
+  if (!confirm('ยืนยันลบพนักงานรายนี้ออกจากระบบ?')) return;
+  google.script.run
+    .withSuccessHandler(function() { loadStaffSettings(); })
+    .withFailureHandler(handleError)
+    .ลบพนักงาน(STATE.token, id);
+}
+
+// ===== MODAL =====
+function closeModal() { document.getElementById('modal').style.display = 'none'; }
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+
+// ===== HELPERS =====
+function handleError(e) {
+  console.error(e);
+  document.getElementById('page-content').innerHTML =
+    '<div class="alert alert-error">❌ เกิดข้อผิดพลาด: ' + (e.message||e) + '</div>';
+}
+function showPage(id) { document.getElementById(id).style.display='flex'; }
+function hidePage(id) { document.getElementById(id).style.display='none'; }
+function fmtMoney(n) { return (parseFloat(n)||0).toLocaleString('th-TH',{minimumFractionDigits:0}); }
+</script>
+
+</body>
+</html>
