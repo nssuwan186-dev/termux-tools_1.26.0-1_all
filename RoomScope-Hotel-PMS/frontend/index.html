@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoomScope PMS</title>
+  <meta name="description" content="ระบบบริหารจัดการโรงแรม RoomScope — ครบวงจร ทันสมัย เชื่อมต่อ LINE">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <?!= include('Style') ?>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="card login-card">
+    <div style="font-size:3rem;margin-bottom:.5rem">🏨</div>
+    <h1>RoomScope</h1>
+    <p class="subtitle">Hotel Property Management System</p>
+    <div id="login-error" class="alert alert-error" style="display:none"></div>
+    <div class="form-group">
+      <label class="form-label" for="login-username">ชื่อผู้ใช้</label>
+      <input id="login-username" class="form-input" type="text" placeholder="กรอกชื่อผู้ใช้"
+        onkeydown="if(event.key==='Enter') document.getElementById('login-password').focus()">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="login-password">รหัสผ่าน</label>
+      <input id="login-password" class="form-input" type="password" placeholder="กรอกรหัสผ่าน"
+        onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <button id="btn-login" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:.5rem" onclick="doLogin()">
+      เข้าสู่ระบบ
+    </button>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div id="sidebar" style="display:none">
+  <div class="logo">🏨 RoomScope</div>
+  <div class="nav-item active" data-page="dashboard" onclick="loadPage('dashboard')">📊 แดชบอร์ด</div>
+  <div class="nav-item" data-page="rooms" onclick="loadPage('rooms')">🏨 ห้องพัก</div>
+  <div class="nav-item" data-page="bookings" onclick="loadPage('bookings')">📅 การจอง</div>
+  <div class="nav-item" data-page="housekeeping" onclick="loadPage('housekeeping')">🧹 ทำความสะอาด</div>
+  <div class="nav-item" data-page="financial_docs" onclick="loadPage('financial_docs')">🧾 เอกสารการเงิน</div>
+  <div class="nav-item" data-page="legal_logs" onclick="loadPage('legal_logs')">📋 รายงานกฎหมาย</div>
+  <div class="nav-item admin-only" data-page="reports" onclick="loadPage('reports')" style="display:none">📈 รายงาน</div>
+  <div class="nav-item admin-only" data-page="settings" onclick="loadPage('settings')" style="display:none">⚙️ ตั้งค่าระบบ</div>
+  <div style="flex:1"></div>
+  <div class="user-info" id="user-name" style="padding:.75rem 1rem;font-size:.85rem;color:var(--text-muted);border-top:1px solid var(--border)"></div>
+  <div class="nav-item" onclick="doLogout()" style="color:var(--danger)">🚪 ออกจากระบบ</div>
+</div>
+
+<!-- MAIN -->
+<div id="main" style="display:none">
+  <div id="page-content"></div>
+</div>
+
+<!-- MODAL -->
+<div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center" onclick="if(event.target===this)closeModal()">
+  <div class="card" id="modal-body" style="max-width:500px;width:90%;max-height:90vh;overflow-y:auto"></div>
+</div>
+
+<?!= include('JavaScript') ?>
+</body>
+</html>
